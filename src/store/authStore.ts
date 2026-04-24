@@ -173,9 +173,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       let user = null
       if (data.user) {
-          // Force sign out because they need approval
-          await supabase.auth.signOut()
-          
+          // Fetch or insert profile WHILE STILL LOGGED IN
           user = await fetchProfile(data.user.id)
           if (!user) { // Fallback creation if trigger failed or hasn't fired yet
              try {
@@ -212,6 +210,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 }
              }
           }
+
+          // NOW force sign out because they need approval
+          await supabase.auth.signOut()
       }
       
       return { user: user, pendingApproval: true }
