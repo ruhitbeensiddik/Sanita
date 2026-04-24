@@ -1,0 +1,551 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 99%;
+    --foreground: 210 20% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 20% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 20% 10%;
+    --primary: 162 72% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 170 30% 95%;
+    --secondary-foreground: 210 20% 10%;
+    --muted: 170 20% 96%;
+    --muted-foreground: 210 12% 48%;
+    --accent: 170 30% 95%;
+    --accent-foreground: 210 20% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 170 18% 89%;
+    --input: 170 18% 89%;
+    --ring: 162 72% 38%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 210 30% 7%;
+    --foreground: 170 20% 95%;
+    --card: 210 28% 10%;
+    --card-foreground: 170 20% 95%;
+    --popover: 210 28% 10%;
+    --popover-foreground: 170 20% 95%;
+    --primary: 162 60% 50%;
+    --primary-foreground: 210 30% 7%;
+    --secondary: 210 24% 16%;
+    --secondary-foreground: 170 20% 95%;
+    --muted: 210 24% 16%;
+    --muted-foreground: 170 15% 60%;
+    --accent: 210 24% 16%;
+    --accent-foreground: 170 20% 95%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 170 20% 95%;
+    --border: 210 24% 18%;
+    --input: 210 24% 18%;
+    --ring: 162 60% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  /* Custom scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--background));
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground));
+    border-radius: 3px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--foreground));
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .dark .glass {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Gradient text effects */
+  .gradient-text-primary {
+    @apply bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent;
+  }
+  
+  .gradient-text-success {
+    @apply bg-gradient-to-r from-green-600 to-green-400 bg-clip-text text-transparent;
+  }
+  
+  .gradient-text-danger {
+    @apply bg-gradient-to-r from-red-600 to-red-400 bg-clip-text text-transparent;
+  }
+
+  /* Enhanced buttons */
+  .btn-glow {
+    @apply relative overflow-hidden;
+  }
+  
+  .btn-glow::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+  
+  .btn-glow:hover::before {
+    left: 100%;
+  }
+
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-300 hover:scale-[1.02] hover:shadow-xl;
+  }
+  
+  .card-hover-subtle {
+    @apply transition-all duration-200 hover:shadow-md hover:-translate-y-1;
+  }
+
+  /* Loading animations */
+  .loading-pulse {
+    animation: loading-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes loading-pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  /* Success/Error animations */
+  .success-bounce {
+    animation: success-bounce 0.6s ease-in-out;
+  }
+  
+  @keyframes success-bounce {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+
+  /* Chart container improvements */
+  .chart-container {
+    @apply relative overflow-hidden rounded-lg;
+  }
+  
+  .chart-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary)), transparent);
+    z-index: 10;
+  }
+
+  /* Custom table styles */
+  .table-hover tbody tr {
+    @apply transition-all duration-150 hover:bg-muted/50;
+  }
+  
+  .table-striped tbody tr:nth-child(even) {
+    @apply bg-muted/20;
+  }
+
+  /* Performance indicators */
+  .indicator-profit {
+    @apply relative;
+  }
+  
+  .indicator-profit::after {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 100%;
+    background: #10b981;
+    border-radius: 2px;
+  }
+  
+  .indicator-loss::after {
+    background: #ef4444;
+  }
+  
+  .indicator-breakeven::after {
+    background: #f59e0b;
+  }
+
+  /* Mobile responsiveness improvements */
+  @media (max-width: 768px) {
+    .mobile-card-padding {
+      @apply px-3 py-4;
+    }
+    
+    .mobile-text-sm {
+      @apply text-sm;
+    }
+    
+    .mobile-grid-1 {
+      @apply grid-cols-1;
+    }
+  }
+
+  /* Print styles */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    
+    .print-break {
+      page-break-after: always;
+    }
+    
+    * {
+      color: black !important;
+      background: white !important;
+    }
+  }
+
+  /* Accessibility improvements */
+  .focus-visible {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  }
+  
+  .reduced-motion {
+    @media (prefers-reduced-motion: reduce) {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+
+  /* Calendar specific styles */
+  .calendar-day {
+    @apply aspect-square min-h-[80px] p-2 border rounded-lg transition-all duration-200;
+  }
+  
+  .calendar-day:hover {
+    @apply scale-[1.02] shadow-md;
+  }
+  
+  .calendar-day.today {
+    @apply ring-2 ring-primary ring-offset-2;
+  }
+  
+  .calendar-day.selected {
+    @apply scale-105 shadow-lg;
+  }
+
+  /* Trade result indicators */
+  .trade-win {
+    @apply bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200;
+  }
+  
+  .trade-loss {
+    @apply bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200;
+  }
+  
+  .trade-breakeven {
+    @apply bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/30 dark:to-yellow-800/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200;
+  }
+
+  /* Advanced animations */
+  .slide-in-bottom {
+    animation: slide-in-bottom 0.3s ease-out;
+  }
+  
+  @keyframes slide-in-bottom {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  .fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+  
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  .scale-in {
+    animation: scale-in 0.2s ease-out;
+  }
+  
+  @keyframes scale-in {
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  /* ============================================ */
+  /* Trade Form Modal Styles                       */
+  /* ============================================ */
+
+  .trade-form-modal {
+    @apply bg-card rounded-2xl shadow-2xl border border-border/50 overflow-hidden;
+  }
+
+  .trade-form-header {
+    @apply flex items-center justify-between px-6 py-5 border-b border-border/50;
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted) / 0.3) 100%);
+  }
+
+  .trade-form-nav {
+    @apply flex items-center gap-1 px-6 py-3 border-b border-border/30 bg-muted/30 overflow-x-auto;
+  }
+
+  .trade-form-nav-pill {
+    @apply flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+           text-muted-foreground hover:text-foreground hover:bg-muted/70
+           transition-all duration-200 whitespace-nowrap cursor-pointer
+           border border-transparent;
+  }
+
+  .trade-form-nav-pill-active {
+    @apply bg-background text-foreground shadow-sm border-border/50;
+  }
+
+  .trade-form-body {
+    @apply px-6 py-6 min-h-[340px];
+  }
+
+  .trade-form-footer {
+    @apply flex items-center justify-between px-6 py-4 border-t border-border/50 bg-muted/20;
+  }
+
+  .trade-form-section-header {
+    @apply flex items-center gap-2 text-base font-semibold text-foreground pb-2 mb-1 border-b border-border/30;
+  }
+
+  .trade-form-field {
+    @apply flex flex-col gap-1.5;
+  }
+
+  /* Labels */
+  .trade-form-label {
+    @apply text-sm font-medium text-foreground;
+  }
+
+  /* Inputs — high contrast, readable text */
+  .trade-form-input {
+    @apply w-full h-11 px-3.5 rounded-lg text-sm font-medium
+           bg-background text-foreground
+           border border-border
+           placeholder:text-muted-foreground/60 placeholder:font-normal
+           transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500
+           hover:border-muted-foreground/40;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .trade-form-input::-webkit-calendar-picker-indicator {
+    filter: hsl(var(--foreground));
+    opacity: 0.6;
+    cursor: pointer;
+  }
+
+  .dark .trade-form-input::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.6;
+  }
+
+  .trade-form-input-error {
+    @apply border-red-500 focus:ring-red-500/40 focus:border-red-500;
+  }
+
+  /* Select specific overrides */
+  select.trade-form-input {
+    @apply cursor-pointer pr-8;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+  }
+
+  /* Textarea */
+  .trade-form-textarea {
+    @apply w-full px-3.5 py-3 rounded-lg text-sm font-medium
+           bg-background text-foreground
+           border border-border
+           placeholder:text-muted-foreground/60 placeholder:font-normal
+           transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500
+           hover:border-muted-foreground/40
+           resize-y min-h-[80px];
+    line-height: 1.6;
+  }
+
+  /* Error message */
+  .trade-form-error {
+    @apply text-xs text-red-500 font-medium mt-0.5;
+  }
+
+  /* Toggle buttons (Direction, Result) */
+  .trade-form-toggle-btn {
+    @apply flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-medium
+           border border-border bg-background text-muted-foreground
+           hover:bg-muted/50 hover:text-foreground
+           transition-all duration-200 cursor-pointer;
+  }
+
+  .trade-form-toggle-active-green {
+    @apply bg-green-50 border-green-400 text-green-700 shadow-sm;
+  }
+  .dark .trade-form-toggle-active-green {
+    @apply bg-green-900/30 border-green-600 text-green-300;
+  }
+
+  .trade-form-toggle-active-red {
+    @apply bg-red-50 border-red-400 text-red-700 shadow-sm;
+  }
+  .dark .trade-form-toggle-active-red {
+    @apply bg-red-900/30 border-red-600 text-red-300;
+  }
+
+  .trade-form-toggle-active-neutral {
+    @apply bg-yellow-50 border-yellow-400 text-yellow-700 shadow-sm;
+  }
+  .dark .trade-form-toggle-active-neutral {
+    @apply bg-yellow-900/30 border-yellow-600 text-yellow-300;
+  }
+
+  /* Footer buttons */
+  .trade-form-btn-secondary {
+    @apply px-5 py-2.5 rounded-lg text-sm font-medium
+           border border-border bg-background text-foreground
+           hover:bg-muted transition-all duration-200 cursor-pointer;
+  }
+
+  .trade-form-btn-primary {
+    @apply px-5 py-2.5 rounded-lg text-sm font-medium
+           bg-emerald-600 text-white shadow-sm
+           hover:bg-emerald-700 hover:shadow-md
+           transition-all duration-200 cursor-pointer;
+  }
+
+  .trade-form-btn-save {
+    @apply flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold
+           bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg
+           hover:from-emerald-700 hover:to-teal-700 hover:shadow-xl
+           transition-all duration-200 cursor-pointer;
+  }
+
+  /* Image upload zone */
+  .image-upload-zone {
+    @apply border-2 border-dashed border-border rounded-xl
+           bg-muted/20 hover:bg-muted/40 hover:border-muted-foreground/40
+           cursor-pointer transition-all duration-200
+           flex items-center justify-center min-h-[140px];
+  }
+
+  .image-upload-zone-active {
+    @apply border-emerald-500 bg-emerald-50/50;
+  }
+
+  .dark .image-upload-zone-active {
+    @apply border-emerald-400 bg-emerald-900/20;
+  }
+
+  .image-preview-card {
+    @apply rounded-xl overflow-hidden border border-border shadow-sm;
+  }
+
+  /* ============================================ */
+  /* Equal-height stat card grids                  */
+  /* ============================================ */
+
+  .stat-card-grid {
+    display: grid;
+    align-items: stretch;
+  }
+
+  .stat-card-grid > * {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-card-grid > * > .stat-card-inner {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* Ensure card values don't overflow and break alignment */
+  .stat-value {
+    @apply text-2xl font-bold truncate w-full;
+  }
+
+  .stat-label {
+    @apply text-sm text-muted-foreground mt-1 truncate w-full;
+  }
+
+  /* Table polish */
+  .trade-table th {
+    @apply text-xs font-semibold uppercase tracking-wider text-muted-foreground;
+  }
+
+  .trade-table td {
+    @apply py-3 text-sm;
+  }
+} 
