@@ -34,7 +34,11 @@ interface AuthState {
 
 async function fetchProfile(userId: string): Promise<User | null> {
   try {
-    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single()
+    const promise = supabase.from('profiles').select('*').eq('id', userId).single()
+    const { data, error } = await Promise.race([
+      promise,
+      new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Profile fetch timed out after 10s')), 10000))
+    ])
     if (error) {
       console.error('fetchProfile Supabase error:', error.message)
       return null
@@ -51,6 +55,13 @@ async function fetchProfile(userId: string): Promise<User | null> {
     console.error('fetchProfile exception:', err)
     return null
   }
+}
+
+const withTimeout = <T>(promise: Promise<T>, timeoutMs: number = 10000, context: string = 'Request'): Promise<T> => {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`${context} timed out after ${timeoutMs / 1000}s`)), timeoutMs))
+  ])
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -113,7 +124,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (email, password) => {
     set({ isLoading: true, error: null })
     try {
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+      const { data: authData, error: authError } = await withTimeout(
+        supabase.auth.signInWithPassword({ email, password }),
+        15000,
+        'Auth Login'
+      )
       
       if (authError || !authData.user) {
         console.error('Login Supabase auth error:', authError)
@@ -159,7 +174,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password })
+      const { data, error } = await withTimeout(
+        supabase.auth.signUp({ email, password }),
+        15000,
+        'Auth Register'
+      )
       
       if (error) {
         console.error('Register Supabase signUp error:', error)
