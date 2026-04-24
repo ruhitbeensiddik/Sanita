@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
+import { hasSupabaseConfig } from '../../lib/supabase'
 import { LoginCharacters, type CharacterInteraction } from './LoginCharacters'
 import logoImage from '../../logodudde.png'
 import toast from 'react-hot-toast'
@@ -36,6 +37,13 @@ export function AuthPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (!hasSupabaseConfig) {
+      const msg = 'System Configuration Error: Missing Supabase environment variables. Please check your Vercel settings or local .env.'
+      setError(msg)
+      toast.error(msg)
+      return
+    }
 
     if (!email || !password) {
       setError('Please fill in all fields.')

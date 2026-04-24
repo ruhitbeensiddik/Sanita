@@ -33,14 +33,23 @@ interface AuthState {
 }
 
 async function fetchProfile(userId: string): Promise<User | null> {
-  const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single()
-  if (error || !data) return null
-  return {
-    id: data.id,
-    email: data.email,
-    role: data.role as Role,
-    status: data.status as AccountStatus,
-    createdAt: data.created_at
+  try {
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single()
+    if (error) {
+      console.error('fetchProfile Supabase error:', error.message)
+      return null
+    }
+    if (!data) return null
+    return {
+      id: data.id,
+      email: data.email,
+      role: data.role as Role,
+      status: data.status as AccountStatus,
+      createdAt: data.created_at
+    }
+  } catch (err: any) {
+    console.error('fetchProfile exception:', err)
+    return null
   }
 }
 
@@ -55,12 +64,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (get().isInitialized) return
 
     // Get current session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
+      if (error) {
+        console.error('initializeAuth getSession error:', error.message)
+        set({ isInitialized: true })
+        return
+      }
+
       let currentUser = null
       if (session?.user) {
         currentUser = await fetchProfile(session.user.id)
         if (currentUser && currentUser.status === 'pending') {
-          // Safety: never auto-restore a pending user session
+          console.warn('Pending user found in session, logging out.')
           await supabase.auth.signOut()
           currentUser = null
         }
@@ -68,9 +83,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ currentUser, isInitialized: true })
       
       // If super_admin, auto-fetch all users
-      if (currentUser?.role === 'super_admin') {
+      if (currentUser?.role === 'super_admin' && currentUser?.status === 'approved') {
         get().subscribeToAllUsers()
       }
+    }).catch(err => {
+      console.error('initializeAuth getSession exception:', err)
+      set({ isInitialized: true })
     })
 
     // Listen for auth changes
@@ -82,7 +100,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           set({ currentUser: null })
         } else {
           set({ currentUser: user })
-          if (user?.role === 'super_admin') {
+          if (user?.role === 'super_admin' && user?.status === 'approved') {
             get().subscribeToAllUsers()
           }
         }
@@ -94,30 +112,42 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   login: async (email, password) => {
     set({ isLoading: true, error: null })
-    
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password })
-    
-    if (authError || !authData.user) {
-      set({ error: 'Invalid email or password.', isLoading: false })
-      return null
-    }
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+      
+      if (authError || !authData.user) {
+        console.error('Login Supabase auth error:', authError)
+        set({ error: authError?.message || 'Invalid email or password.' })
+        return null
+      }
 
-    const user = await fetchProfile(authData.user.id)
-    
-    if (user && user.status === 'pending') {
-      await supabase.auth.signOut()
-      set({
-        error: 'Your account is awaiting approval from the Super Admin. You\'ll be able to access the system once your account is approved.',
-        isLoading: false
-      })
+      const user = await fetchProfile(authData.user.id)
+      
+      if (!user) {
+        set({ error: 'Your user profile could not be loaded. Please try again.' })
+        return null
+      }
+
+      if (user.status === 'pending') {
+        await supabase.auth.signOut()
+        set({
+          error: 'Your account is awaiting approval from the Super Admin. You\'ll be able to access the system once your account is approved.'
+        })
+        return null
+      }
+      
+      set({ currentUser: user })
+      if (user?.role === 'super_admin' && user?.status === 'approved') {
+        get().subscribeToAllUsers()
+      }
+      return user
+    } catch (err: any) {
+      console.error('Login exception:', err)
+      set({ error: err.message || 'An unexpected error occurred during login.' })
       return null
+    } finally {
+      set({ isLoading: false })
     }
-    
-    set({ currentUser: user, isLoading: false })
-    if (user?.role === 'super_admin') {
-      get().subscribeToAllUsers()
-    }
-    return user
   },
 
   register: async (email, password) => {
@@ -128,56 +158,102 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return { user: null }
     }
 
-    // Attempt signup
-    const { data, error } = await supabase.auth.signUp({ email, password })
-    
-    if (error) {
-      if (error.message.toLowerCase().includes('already registered')) {
-        set({ error: 'This email is already registered. Please use another email.', isLoading: false })
-      } else {
-        set({ error: error.message, isLoading: false })
-      }
-      return { user: null }
-    }
-
-    let user = null
-    if (data.user) {
-        // Sign out immediately so they don't get auto-logged in since they are pending
-        await supabase.auth.signOut()
-        
-        user = await fetchProfile(data.user.id)
-        if (!user) { // Fallback if trigger was slow
-            user = {
-                id: data.user.id,
-                email,
-                role: 'user' as Role,
-                status: 'pending' as AccountStatus,
-                createdAt: new Date().toISOString()
-            }
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password })
+      
+      if (error) {
+        console.error('Register Supabase signUp error:', error)
+        if (error.message.toLowerCase().includes('already registered') || error.message.toLowerCase().includes('user already exists')) {
+          set({ error: 'This email is already registered. Please use another email.' })
+        } else {
+          set({ error: error.message })
         }
+        return { user: null }
+      }
+
+      let user = null
+      if (data.user) {
+          // Force sign out because they need approval
+          await supabase.auth.signOut()
+          
+          user = await fetchProfile(data.user.id)
+          if (!user) { // Fallback creation if trigger failed or hasn't fired yet
+             try {
+                const { data: profileInsert, error: insertError } = await supabase.from('profiles').insert({
+                  id: data.user.id,
+                  email,
+                  role: 'user',
+                  status: 'pending'
+                }).select().single()
+
+                if (insertError) {
+                   console.error('Register Supabase profile creation fallback error:', insertError)
+                } else if (profileInsert) {
+                   user = {
+                       id: profileInsert.id,
+                       email: profileInsert.email,
+                       role: profileInsert.role as Role,
+                       status: profileInsert.status as AccountStatus,
+                       createdAt: profileInsert.created_at
+                   }
+                }
+             } catch (insertEx) {
+                console.error('Register profile insertion exception:', insertEx)
+             }
+             
+             // Final fallback if even manual insert fails
+             if (!user) {
+                user = {
+                    id: data.user.id,
+                    email,
+                    role: 'user' as Role,
+                    status: 'pending' as AccountStatus,
+                    createdAt: new Date().toISOString()
+                }
+             }
+          }
+      }
+      
+      return { user: user, pendingApproval: true }
+    } catch (err: any) {
+      console.error('Register exception:', err)
+      set({ error: err.message || 'An unexpected error occurred during registration.' })
+      return { user: null }
+    } finally {
+      set({ isLoading: false })
     }
-    
-    set({ isLoading: false })
-    return { user: user, pendingApproval: true }
   },
 
   logout: async () => {
-    await supabase.auth.signOut()
-    set({ currentUser: null, users: [] })
+    try {
+      await supabase.auth.signOut()
+    } catch (err) {
+      console.error('Logout error:', err)
+    } finally {
+      set({ currentUser: null, users: [] })
+    }
   },
 
   subscribeToAllUsers: () => {
     const fetchUsers = async () => {
-      const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
-      if (!error && data) {
-        const mappedUsers = data.map(d => ({
-          id: d.id,
-          email: d.email,
-          role: d.role as Role,
-          status: d.status as AccountStatus,
-          createdAt: d.created_at
-        }))
-        set({ users: mappedUsers })
+      try {
+        const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
+        if (error) {
+          console.error('subscribeToAllUsers Supabase error:', error.message)
+          return
+        }
+        if (data) {
+          const mappedUsers = data.map(d => ({
+            id: d.id,
+            email: d.email,
+            role: d.role as Role,
+            status: d.status as AccountStatus,
+            createdAt: d.created_at
+          }))
+          set({ users: mappedUsers })
+        }
+      } catch (err) {
+        console.error('subscribeToAllUsers exception:', err)
       }
     }
     
@@ -190,10 +266,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       console.warn('Cannot change super admin roles.')
       return
     }
-    
-    const { error } = await supabase.from('profiles').update({ role: newRole }).eq('id', userId)
-    if (!error) {
-      get().subscribeToAllUsers()
+    try {
+      const { error } = await supabase.from('profiles').update({ role: newRole }).eq('id', userId)
+      if (error) {
+        console.error('updateUserRole error:', error.message)
+      } else {
+        get().subscribeToAllUsers()
+      }
+    } catch (err) {
+      console.error('updateUserRole exception:', err)
     }
   },
 
@@ -202,25 +283,42 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       console.warn('Cannot delete super admin.')
       return
     }
-    
-    const { error } = await supabase.from('profiles').delete().eq('id', userId)
-    if (!error) {
-      get().subscribeToAllUsers()
+    try {
+      const { error } = await supabase.from('profiles').delete().eq('id', userId)
+      if (error) {
+        console.error('deleteUser error:', error.message)
+      } else {
+        get().subscribeToAllUsers()
+      }
+    } catch (err) {
+      console.error('deleteUser exception:', err)
     }
   },
 
   approveUser: async (userId) => {
-    const { error } = await supabase.from('profiles').update({ status: 'approved' }).eq('id', userId)
-    if (!error) {
-      get().subscribeToAllUsers()
+    try {
+      const { error } = await supabase.from('profiles').update({ status: 'approved' }).eq('id', userId)
+      if (error) {
+        console.error('approveUser error:', error.message)
+      } else {
+        get().subscribeToAllUsers()
+      }
+    } catch (err) {
+      console.error('approveUser exception:', err)
     }
   },
 
   rejectUser: async (userId) => {
     if (isDefaultSuperAdmin(userId)) return
-    const { error } = await supabase.from('profiles').delete().eq('id', userId)
-    if (!error) {
-       get().subscribeToAllUsers()
+    try {
+      const { error } = await supabase.from('profiles').delete().eq('id', userId)
+      if (error) {
+        console.error('rejectUser error:', error.message)
+      } else {
+         get().subscribeToAllUsers()
+      }
+    } catch (err) {
+      console.error('rejectUser exception:', err)
     }
   }
 }))

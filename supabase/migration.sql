@@ -8,7 +8,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- ==========================================
 -- 1. Profiles Table (User Metadata)
 -- ==========================================
-CREATE TABLE profiles (
+CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT NOT NULL,
   role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'super_admin')),
@@ -17,81 +17,95 @@ CREATE TABLE profiles (
 );
 
 -- Turn on RLS
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+-- Utility function to fix RLS infinite recursion
+CREATE OR REPLACE FUNCTION public.is_super_admin()
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'super_admin' AND status = 'approved'
+  );
+END;
+$$;
 
 -- Profiles Policies
+DROP POLICY IF EXISTS "Users can read own profile" ON public.profiles;
 CREATE POLICY "Users can read own profile"
-  ON profiles FOR SELECT
+  ON public.profiles FOR SELECT
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile"
-  ON profiles FOR UPDATE
+  ON public.profiles FOR UPDATE
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Super admins can read all profiles" ON public.profiles;
 CREATE POLICY "Super admins can read all profiles"
-  ON profiles FOR SELECT
-  USING (
-    (SELECT role FROM profiles WHERE id = auth.uid()) = 'super_admin'
-  );
+  ON public.profiles FOR SELECT
+  USING (public.is_super_admin());
 
+DROP POLICY IF EXISTS "Super admins can update all profiles" ON public.profiles;
 CREATE POLICY "Super admins can update all profiles"
-  ON profiles FOR UPDATE
-  USING (
-    (SELECT role FROM profiles WHERE id = auth.uid()) = 'super_admin'
-  );
+  ON public.profiles FOR UPDATE
+  USING (public.is_super_admin());
 
+DROP POLICY IF EXISTS "Super admins can delete profiles" ON public.profiles;
 CREATE POLICY "Super admins can delete profiles"
-  ON profiles FOR DELETE
-  USING (
-    (SELECT role FROM profiles WHERE id = auth.uid()) = 'super_admin'
-  );
+  ON public.profiles FOR DELETE
+  USING (public.is_super_admin());
 
 -- Trigger to auto-create profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO public.profiles (id, email, status, role)
-  VALUES (new.id, new.email, 'pending', 'user');
+  VALUES (new.id, new.email, 'pending', 'user')
+  ON CONFLICT (id) DO NOTHING;
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE OR REPLACE TRIGGER on_auth_user_created
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
 -- ==========================================
 -- 2. Accounts Table
 -- ==========================================
-CREATE TABLE accounts (
+CREATE TABLE IF NOT EXISTS public.accounts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   is_default BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.accounts ENABLE ROW LEVEL SECURITY;
 
 -- Accounts Policies
+DROP POLICY IF EXISTS "Users can manage own accounts" ON public.accounts;
 CREATE POLICY "Users can manage own accounts"
-  ON accounts FOR ALL
+  ON public.accounts FOR ALL
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Super admins can view all accounts" ON public.accounts;
 CREATE POLICY "Super admins can view all accounts"
-  ON accounts FOR SELECT
-  USING (
-    (SELECT role FROM profiles WHERE id = auth.uid()) = 'super_admin'
-  );
+  ON public.accounts FOR SELECT
+  USING (public.is_super_admin());
 
 -- ==========================================
 -- 3. Trades Table
 -- ==========================================
-CREATE TABLE trades (
+CREATE TABLE IF NOT EXISTS public.trades (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  account_id UUID REFERENCES accounts(id) ON DELETE SET NULL,
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  account_id UUID REFERENCES public.accounts(id) ON DELETE SET NULL,
   pair TEXT NOT NULL,
   date DATE NOT NULL,
   time TEXT,
@@ -121,22 +135,22 @@ CREATE TABLE trades (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-ALTER TABLE trades ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.trades ENABLE ROW LEVEL SECURITY;
 
 -- Trades Policies
+DROP POLICY IF EXISTS "Users can manage own trades" ON public.trades;
 CREATE POLICY "Users can manage own trades"
-  ON trades FOR ALL
+  ON public.trades FOR ALL
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Super admins can view all trades" ON public.trades;
 CREATE POLICY "Super admins can view all trades"
-  ON trades FOR SELECT
-  USING (
-    (SELECT role FROM profiles WHERE id = auth.uid()) = 'super_admin'
-  );
+  ON public.trades FOR SELECT
+  USING (public.is_super_admin());
 
 -- Trigger for updated_at on trades
-CREATE OR REPLACE FUNCTION update_modified_column()
+CREATE OR REPLACE FUNCTION public.update_modified_column()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = now();
@@ -144,17 +158,18 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+DROP TRIGGER IF EXISTS update_trades_modtime ON public.trades;
 CREATE TRIGGER update_trades_modtime
-BEFORE UPDATE ON trades
-FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+BEFORE UPDATE ON public.trades
+FOR EACH ROW EXECUTE PROCEDURE public.update_modified_column();
 
 -- ==========================================
 -- 4. Goals Table
 -- ==========================================
-CREATE TABLE goals (
+CREATE TABLE IF NOT EXISTS public.goals (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  account_id UUID REFERENCES accounts(id) ON DELETE SET NULL,
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  account_id UUID REFERENCES public.accounts(id) ON DELETE SET NULL,
   title TEXT NOT NULL,
   description TEXT,
   target_amount NUMERIC NOT NULL,
@@ -174,20 +189,21 @@ CREATE TABLE goals (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.goals ENABLE ROW LEVEL SECURITY;
 
 -- Goals Policies
+DROP POLICY IF EXISTS "Users can manage own goals" ON public.goals;
 CREATE POLICY "Users can manage own goals"
-  ON goals FOR ALL
+  ON public.goals FOR ALL
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Super admins can view all goals" ON public.goals;
 CREATE POLICY "Super admins can view all goals"
-  ON goals FOR SELECT
-  USING (
-    (SELECT role FROM profiles WHERE id = auth.uid()) = 'super_admin'
-  );
+  ON public.goals FOR SELECT
+  USING (public.is_super_admin());
 
+DROP TRIGGER IF EXISTS update_goals_modtime ON public.goals;
 CREATE TRIGGER update_goals_modtime
-BEFORE UPDATE ON goals
-FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+BEFORE UPDATE ON public.goals
+FOR EACH ROW EXECUTE PROCEDURE public.update_modified_column();
