@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase'
 interface AccountState {
   accounts: Account[]
   activeAccountId: string | null
+  isAccountsLoaded: boolean
   
   initializeAccounts: (userId: string) => () => void
   createAccount: (userId: string, name: string) => Promise<{ success: boolean; error?: string; account?: Account }>
@@ -20,8 +21,10 @@ const MAX_ACCOUNTS = 10
 export const useAccountStore = create<AccountState>((set, get) => ({
   accounts: [],
   activeAccountId: null,
+  isAccountsLoaded: false,
 
   initializeAccounts: (userId) => {
+    set({ isAccountsLoaded: false })
     const fetchAccounts = async () => {
       const currentUser = useAuthStore.getState().currentUser
       let query = supabase.from('accounts').select('*').order('created_at', { ascending: true })
@@ -52,7 +55,7 @@ export const useAccountStore = create<AccountState>((set, get) => ({
         activeId = null
       }
 
-      set({ accounts: mappedAccounts, activeAccountId: activeId })
+      set({ accounts: mappedAccounts, activeAccountId: activeId, isAccountsLoaded: true })
     }
 
     fetchAccounts()
@@ -75,6 +78,32 @@ export const useAccountStore = create<AccountState>((set, get) => ({
     }).select().single()
 
     if (error || !data) {
+      // Handle unique constraint violation — account already exists
+      if (error?.code === '23505') {
+        const { data: existing } = await supabase.from('accounts')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('name', name)
+          .single()
+        if (existing) {
+          const existingAccount: Account = {
+            id: existing.id,
+            userId: existing.user_id,
+            name: existing.name,
+            isDefault: existing.is_default,
+            createdAt: existing.created_at
+          }
+          // Ensure it's in the local state
+          const currentAccounts = get().accounts
+          if (!currentAccounts.find(a => a.id === existingAccount.id)) {
+            set({ accounts: [...currentAccounts, existingAccount] })
+          }
+          if (!get().activeAccountId) {
+            set({ activeAccountId: existingAccount.id })
+          }
+          return { success: true, account: existingAccount }
+        }
+      }
       return { success: false, error: error?.message || 'Failed to create account.' }
     }
 

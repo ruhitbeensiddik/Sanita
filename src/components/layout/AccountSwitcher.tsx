@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAccountStore } from '../../store/accountStore'
 import { useAuthStore } from '../../store/authStore'
@@ -10,7 +10,7 @@ import { DeleteAccountModal } from './DeleteAccountModal'
 
 export function AccountSwitcher() {
   const { currentUser } = useAuthStore()
-  const { accounts, activeAccountId, createAccount, switchAccount, renameAccount } = useAccountStore()
+  const { accounts, activeAccountId, isAccountsLoaded, createAccount, switchAccount, renameAccount } = useAccountStore()
   const [isOpen, setIsOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [newAccountName, setNewAccountName] = useState('')
@@ -19,18 +19,24 @@ export function AccountSwitcher() {
   const [editAccountName, setEditAccountName] = useState('')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteAccountInfo, setDeleteAccountInfo] = useState<{id: string; name: string} | null>(null)
+  const defaultCreatedRef = useRef(false)
 
-  // Ensure user has at least one account upon load
+  // Reset the guard when user changes (e.g. logout then login as different user)
   useEffect(() => {
-    if (currentUser) {
-      const userAccounts = accounts.filter(a => a.userId === currentUser.id)
-      if (userAccounts.length === 0) {
-        createAccount(currentUser.id, 'Default Account')
-      } else if (!activeAccountId) {
-        switchAccount(userAccounts[0].id)
-      }
+    defaultCreatedRef.current = false
+  }, [currentUser?.id])
+
+  // Ensure user has at least one account — only after accounts are loaded from Supabase
+  useEffect(() => {
+    if (!currentUser || !isAccountsLoaded) return
+    const userAccounts = accounts.filter(a => a.userId === currentUser.id)
+    if (userAccounts.length === 0 && !defaultCreatedRef.current) {
+      defaultCreatedRef.current = true
+      createAccount(currentUser.id, 'Default Account')
+    } else if (!activeAccountId && userAccounts.length > 0) {
+      switchAccount(userAccounts[0].id)
     }
-  }, [currentUser, accounts, activeAccountId, createAccount, switchAccount])
+  }, [currentUser, accounts, activeAccountId, isAccountsLoaded, createAccount, switchAccount])
 
   const userAccounts = accounts.filter(a => a.userId === currentUser?.id)
   const activeAccount = userAccounts.find(a => a.id === activeAccountId)

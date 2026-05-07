@@ -216,3 +216,93 @@ DROP TRIGGER IF EXISTS update_goals_modtime ON public.goals;
 CREATE TRIGGER update_goals_modtime
 BEFORE UPDATE ON public.goals
 FOR EACH ROW EXECUTE PROCEDURE public.update_modified_column();
+
+-- ==========================================
+-- 5. Cleanup Duplicate Accounts & Add Unique Constraint
+-- ==========================================
+-- This block safely:
+--   a) Finds duplicate accounts (same user_id + name)
+--   b) Keeps the OLDEST one (by created_at) per group
+--   c) Reassigns trades & goals from duplicates to the kept account
+--   d) Deletes the duplicate rows
+--   e) Adds a UNIQUE constraint to prevent future duplicates
+-- SAFE: No user data (trades/goals) is deleted — only reassigned.
+-- IDEMPOTENT: Safe to run multiple times.
+-- ==========================================
+DO $$
+DECLARE
+  _keeper_id UUID;
+  _dup RECORD;
+BEGIN
+  -- ------------------------------------------------
+  -- Step A: Reassign trades from duplicate accounts
+  -- to the keeper (oldest account per user_id+name)
+  -- ------------------------------------------------
+  UPDATE public.trades t
+  SET account_id = keeper.keeper_id
+  FROM (
+    SELECT dup.id AS dup_id, keeper_sub.keeper_id
+    FROM public.accounts dup
+    INNER JOIN (
+      SELECT DISTINCT ON (user_id, name) id AS keeper_id, user_id, name
+      FROM public.accounts
+      ORDER BY user_id, name, created_at ASC, id ASC
+    ) keeper_sub
+      ON dup.user_id = keeper_sub.user_id
+      AND dup.name = keeper_sub.name
+      AND dup.id != keeper_sub.keeper_id
+  ) keeper
+  WHERE t.account_id = keeper.dup_id;
+
+  -- ------------------------------------------------
+  -- Step B: Reassign goals from duplicate accounts
+  -- to the keeper (oldest account per user_id+name)
+  -- ------------------------------------------------
+  UPDATE public.goals g
+  SET account_id = keeper.keeper_id
+  FROM (
+    SELECT dup.id AS dup_id, keeper_sub.keeper_id
+    FROM public.accounts dup
+    INNER JOIN (
+      SELECT DISTINCT ON (user_id, name) id AS keeper_id, user_id, name
+      FROM public.accounts
+      ORDER BY user_id, name, created_at ASC, id ASC
+    ) keeper_sub
+      ON dup.user_id = keeper_sub.user_id
+      AND dup.name = keeper_sub.name
+      AND dup.id != keeper_sub.keeper_id
+  ) keeper
+  WHERE g.account_id = keeper.dup_id;
+
+  -- ------------------------------------------------
+  -- Step C: Delete the duplicate accounts
+  -- (keep only the oldest per user_id+name group)
+  -- ------------------------------------------------
+  DELETE FROM public.accounts
+  WHERE id IN (
+    SELECT dup.id
+    FROM public.accounts dup
+    INNER JOIN (
+      SELECT DISTINCT ON (user_id, name) id AS keeper_id, user_id, name
+      FROM public.accounts
+      ORDER BY user_id, name, created_at ASC, id ASC
+    ) keeper_sub
+      ON dup.user_id = keeper_sub.user_id
+      AND dup.name = keeper_sub.name
+      AND dup.id != keeper_sub.keeper_id
+  );
+
+  -- ------------------------------------------------
+  -- Step D: Add unique constraint to prevent future
+  -- duplicates. Safe if constraint already exists.
+  -- ------------------------------------------------
+  ALTER TABLE public.accounts
+    ADD CONSTRAINT accounts_user_id_name_unique UNIQUE (user_id, name);
+
+EXCEPTION
+  WHEN duplicate_object THEN
+    -- Constraint already exists, nothing to do
+    NULL;
+  WHEN duplicate_table THEN
+    NULL;
+END $$;

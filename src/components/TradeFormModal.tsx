@@ -166,6 +166,41 @@ export function TradeFormModal({ isOpen, onClose, editTrade, prefillDate, duplic
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
+  // Auto-calculate risk/reward ratio
+  useEffect(() => {
+    if (!isOpen) return
+
+    const entry = parseFloat(formData.entryPrice)
+    const sl = parseFloat(formData.stopLoss)
+    const tp = parseFloat(formData.takeProfit)
+    const dir = formData.direction
+
+    // If any required field is missing or direction is neutral, clear RR
+    if (isNaN(entry) || isNaN(sl) || isNaN(tp) || dir === '-') {
+      setFormData(prev => ({ ...prev, riskReward: '' }))
+      return
+    }
+
+    let risk: number, reward: number
+    if (dir === 'Long') {
+      risk = entry - sl
+      reward = tp - entry
+    } else {
+      // Short
+      risk = sl - entry
+      reward = entry - tp
+    }
+
+    if (risk <= 0) {
+      // Invalid setup: stop loss is on wrong side or equal to entry
+      setFormData(prev => ({ ...prev, riskReward: '' }))
+      return
+    }
+
+    const rr = reward / risk
+    setFormData(prev => ({ ...prev, riskReward: rr > 0 ? rr.toFixed(2) : '0' }))
+  }, [isOpen, formData.entryPrice, formData.stopLoss, formData.takeProfit, formData.direction])
+
   const updateField = useCallback((field: keyof FormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     if (errors[field]) {
@@ -408,8 +443,8 @@ export function TradeFormModal({ isOpen, onClose, editTrade, prefillDate, duplic
                         </div>
                         <div className="trade-form-field sm:col-span-2">
                           <label htmlFor="tf-rr" className="trade-form-label">Risk / Reward Ratio</label>
-                          <input id="tf-rr" type="number" step="any" className="trade-form-input" placeholder="e.g. 2.5" value={formData.riskReward} onChange={(e) => updateField('riskReward', e.target.value)} />
-                          <p className="text-xs text-muted-foreground mt-1">The ratio of potential reward to risk taken</p>
+                          <input id="tf-rr" type="number" step="any" className="trade-form-input bg-muted/50 cursor-not-allowed" placeholder="Auto-calculated" value={formData.riskReward} readOnly tabIndex={-1} />
+                          <p className="text-xs text-muted-foreground mt-1">Auto-calculated from Entry Price, Stop Loss, Take Profit &amp; Direction</p>
                         </div>
                       </div>
                     </motion.div>
