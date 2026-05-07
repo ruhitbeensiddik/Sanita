@@ -32,6 +32,13 @@ interface AuthState {
   rejectUser: (userId: string) => Promise<void>
 }
 
+// ─── Module-level coordination flags ────────────────────
+// These prevent onAuthStateChange from racing with login()/register()
+let _loginInProgress = false
+let _registerInProgress = false
+let _initialSessionDone = false
+let _authSubscription: { unsubscribe: () => void } | null = null
+
 async function fetchProfile(userId: string): Promise<User | null> {
   try {
     const promise = supabase.from('profiles').select('*').eq('id', userId).single()
@@ -40,7 +47,7 @@ async function fetchProfile(userId: string): Promise<User | null> {
       new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Profile fetch timed out after 10s')), 10000))
     ])
     if (error) {
-      console.error('fetchProfile Supabase error:', error.message)
+      console.error('[Auth] fetchProfile Supabase error:', error.message)
       return null
     }
     if (!data) return null
@@ -52,7 +59,7 @@ async function fetchProfile(userId: string): Promise<User | null> {
       createdAt: data.created_at
     }
   } catch (err: any) {
-    console.error('fetchProfile exception:', err)
+    console.error('[Auth] fetchProfile exception:', err)
     return null
   }
 }
@@ -74,11 +81,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initializeAuth: () => {
     if (get().isInitialized) return
 
-    // Get current session
+    // Clean up previous subscription if any
+    if (_authSubscription) {
+      _authSubscription.unsubscribe()
+      _authSubscription = null
+    }
+    _initialSessionDone = false
+
+    // 1. Restore session on page load
     supabase.auth.getSession().then(async ({ data: { session }, error }) => {
       if (error) {
-        console.error('initializeAuth getSession error:', error.message)
+        console.error('[Auth] getSession error:', error.message)
         set({ isInitialized: true })
+        _initialSessionDone = true
         return
       }
 
@@ -86,43 +101,70 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (session?.user) {
         currentUser = await fetchProfile(session.user.id)
         if (currentUser && currentUser.status === 'pending') {
-          console.warn('Pending user found in session, logging out.')
+          console.warn('[Auth] Pending user in restored session, signing out.')
           await supabase.auth.signOut()
           currentUser = null
         }
       }
       set({ currentUser, isInitialized: true })
+      _initialSessionDone = true
       
-      // If super_admin, auto-fetch all users
       if (currentUser?.role === 'super_admin' && currentUser?.status === 'approved') {
         get().subscribeToAllUsers()
       }
     }).catch(err => {
-      console.error('initializeAuth getSession exception:', err)
+      console.error('[Auth] getSession exception:', err)
       set({ isInitialized: true })
+      _initialSessionDone = true
     })
 
-    // Listen for auth changes
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
+    // 2. Listen for SUBSEQUENT auth state changes only
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Skip events while login() or register() are handling their own flow
+      if (_loginInProgress || _registerInProgress) {
+        return
+      }
+
+      // Skip events before initial getSession() completes (avoid double-processing)
+      if (!_initialSessionDone) {
+        return
+      }
+
+      if (event === 'SIGNED_OUT') {
+        set({ currentUser: null, users: [] })
+        return
+      }
+
+      if (event === 'SIGNED_IN') {
+        if (!session?.user) return
+
+        // If we already have this user loaded, skip redundant re-fetch
+        const existing = get().currentUser
+        if (existing && existing.id === session.user.id) return
+
         const user = await fetchProfile(session.user.id)
         if (user && user.status === 'pending') {
-          await supabase.auth.signOut()
+          // Don't call signOut() here to avoid event loops.
+          // Just don't grant access.
           set({ currentUser: null })
-        } else {
+        } else if (user) {
           set({ currentUser: user })
-          if (user?.role === 'super_admin' && user?.status === 'approved') {
+          if (user.role === 'super_admin' && user.status === 'approved') {
             get().subscribeToAllUsers()
           }
         }
-      } else if (event === 'SIGNED_OUT') {
-         set({ currentUser: null, users: [] })
+        // If user is null (fetchProfile failed), do NOT clear currentUser.
+        // This prevents random logout on temporary network issues.
       }
+      // TOKEN_REFRESHED, USER_UPDATED, etc.: no action needed
     })
+
+    _authSubscription = subscription
   },
 
   login: async (email, password) => {
     set({ isLoading: true, error: null })
+    _loginInProgress = true
     try {
       const { data: authData, error: authError } = await withTimeout(
         supabase.auth.signInWithPassword({ email, password }),
@@ -131,7 +173,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       )
       
       if (authError || !authData.user) {
-        console.error('Login Supabase auth error:', authError)
+        console.error('[Auth] Login error:', authError)
         set({ error: authError?.message || 'Invalid email or password.' })
         return null
       }
@@ -146,6 +188,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (user.status === 'pending') {
         await supabase.auth.signOut()
         set({
+          currentUser: null,
           error: 'Your account is awaiting approval from the Super Admin. You\'ll be able to access the system once your account is approved.'
         })
         return null
@@ -157,19 +200,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
       return user
     } catch (err: any) {
-      console.error('Login exception:', err)
+      console.error('[Auth] Login exception:', err)
       set({ error: err.message || 'An unexpected error occurred during login.' })
       return null
     } finally {
+      _loginInProgress = false
       set({ isLoading: false })
     }
   },
 
   register: async (email, password) => {
     set({ isLoading: true, error: null })
+    _registerInProgress = true
     
     if (password.length < 6) {
       set({ error: 'Password must be at least 6 characters.', isLoading: false })
+      _registerInProgress = false
       return { user: null }
     }
 
@@ -181,7 +227,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       )
       
       if (error) {
-        console.error('Register Supabase signUp error:', error)
+        console.error('[Auth] Register signUp error:', error)
         if (error.message.toLowerCase().includes('already registered') || error.message.toLowerCase().includes('user already exists')) {
           set({ error: 'This email is already registered. Please use another email.' })
         } else {
@@ -204,7 +250,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 }).select().single()
 
                 if (insertError) {
-                   console.error('Register Supabase profile creation fallback error:', insertError)
+                   console.error('[Auth] Register profile creation fallback error:', insertError)
                 } else if (profileInsert) {
                    user = {
                        id: profileInsert.id,
@@ -215,7 +261,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                    }
                 }
              } catch (insertEx) {
-                console.error('Register profile insertion exception:', insertEx)
+                console.error('[Auth] Register profile insertion exception:', insertEx)
              }
              
              // Final fallback if even manual insert fails
@@ -236,10 +282,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       
       return { user: user, pendingApproval: true }
     } catch (err: any) {
-      console.error('Register exception:', err)
+      console.error('[Auth] Register exception:', err)
       set({ error: err.message || 'An unexpected error occurred during registration.' })
       return { user: null }
     } finally {
+      _registerInProgress = false
       set({ isLoading: false })
     }
   },
@@ -248,7 +295,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       await supabase.auth.signOut()
     } catch (err) {
-      console.error('Logout error:', err)
+      console.error('[Auth] Logout error:', err)
     } finally {
       set({ currentUser: null, users: [] })
     }
@@ -259,7 +306,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       try {
         const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
         if (error) {
-          console.error('subscribeToAllUsers Supabase error:', error.message)
+          console.error('[Auth] subscribeToAllUsers Supabase error:', error.message)
           return
         }
         if (data) {
@@ -273,7 +320,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           set({ users: mappedUsers })
         }
       } catch (err) {
-        console.error('subscribeToAllUsers exception:', err)
+        console.error('[Auth] subscribeToAllUsers exception:', err)
       }
     }
     
