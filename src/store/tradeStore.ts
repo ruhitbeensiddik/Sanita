@@ -127,6 +127,7 @@ const generateId = () => Math.random().toString(36).substring(2, 15) + Math.rand
 
 interface TradeStore {
   trades: Trade[]
+  deletedTrades: Trade[]
   goals: Goal[]
   currentMonth: { year: number; month: number }
   
@@ -138,6 +139,7 @@ interface TradeStore {
   deleteTrade: (id: string) => Promise<void>
   permanentlyDeleteTrade: (id: string) => Promise<void>
   restoreTrade: (id: string) => Promise<void>
+  fetchDeletedTrades: () => Promise<void>
   getActiveTradeCount: () => number
   setCurrentMonth: (year: number, month: number) => void
   getCurrentMonthTrades: (accountId?: string | null, requestedUserId?: string | null) => Trade[]
@@ -164,6 +166,7 @@ interface TradeStore {
 
 export const useTradeStore = create<TradeStore>((set, get) => ({
   trades: [],
+  deletedTrades: [],
   goals: [],
   currentMonth: { 
     year: new Date().getFullYear(), 
@@ -174,6 +177,10 @@ export const useTradeStore = create<TradeStore>((set, get) => ({
     const fetchTrades = async () => {
       const currentUser = useAuthStore.getState().currentUser
       let query = supabase.from('trades').select('*').order('date', { ascending: false })
+      
+      // Always filter out soft-deleted trades for the main store
+      // Deleted trades are fetched separately via fetchDeletedTrades
+      query = query.eq('is_deleted', false)
       
       if (currentUser?.role !== 'super_admin') {
         query = query.eq('user_id', userId)
@@ -246,38 +253,54 @@ export const useTradeStore = create<TradeStore>((set, get) => ({
       deleted_by: currentUser?.id || null
     }).eq('id', id)
     if (!error) {
-      // For normal users, remove from local state (they can't see deleted trades)
-      // For super admin, update the local state to reflect soft delete
-      if (currentUser?.role === 'super_admin') {
-        set({ trades: get().trades.map(t => t.id === id ? { ...t, isDeleted: true, deletedAt: now, deletedBy: currentUser?.id || null } : t) })
-      } else {
-        set({ trades: get().trades.filter(t => t.id !== id) })
-      }
+      // Always remove from active trades (deleted trades belong only in deletedTrades)
+      set({ trades: get().trades.filter(t => t.id !== id) })
     }
   },
 
   permanentlyDeleteTrade: async (id) => {
     const { error } = await supabase.from('trades').delete().eq('id', id)
     if (!error) {
-      set({ trades: get().trades.filter(t => t.id !== id) })
+      // Remove from both active and deleted lists
+      set({
+        trades: get().trades.filter(t => t.id !== id),
+        deletedTrades: get().deletedTrades.filter(t => t.id !== id)
+      })
     }
   },
 
   restoreTrade: async (id) => {
-    const { error } = await supabase.from('trades').update({
+    const { error, data } = await supabase.from('trades').update({
       is_deleted: false,
       deleted_at: null,
       deleted_by: null
-    }).eq('id', id)
-    if (!error) {
-      set({ trades: get().trades.map(t => t.id === id ? { ...t, isDeleted: false, deletedAt: null, deletedBy: null } : t) })
+    }).eq('id', id).select().single()
+    if (!error && data) {
+      const restoredTrade = mapTradeFromSupabase(data)
+      // Add back to active trades, remove from deleted trades
+      set({
+        trades: [restoredTrade, ...get().trades],
+        deletedTrades: get().deletedTrades.filter(t => t.id !== id)
+      })
+    }
+  },
+
+  fetchDeletedTrades: async () => {
+    // Super admin only: fetch all soft-deleted trades for the trash panel
+    const { data, error } = await supabase.from('trades')
+      .select('*')
+      .eq('is_deleted', true)
+      .order('deleted_at', { ascending: false })
+    if (!error && data) {
+      set({ deletedTrades: data.map(mapTradeFromSupabase) })
     }
   },
 
   getActiveTradeCount: () => {
     const currentUser = useAuthStore.getState().currentUser
     if (!currentUser) return 0
-    return get().trades.filter(t => t.userId === currentUser.id && !t.isDeleted).length
+    // trades store now only contains active (non-deleted) trades
+    return get().trades.filter(t => t.userId === currentUser.id).length
   },
   
   setCurrentMonth: (year, month) => set({ currentMonth: { year, month } }),
@@ -289,6 +312,8 @@ export const useTradeStore = create<TradeStore>((set, get) => ({
     const isSuperAdmin = currentUser.role === 'super_admin'
 
     return trades.filter(trade => {
+      // Safety: always exclude soft-deleted trades from normal views
+      if (trade.isDeleted) return false
       if (!isSuperAdmin && trade.userId !== currentUser.id) return false
       if (isSuperAdmin && requestedUserId && trade.userId !== requestedUserId) return false
       if (accountId && trade.accountId !== accountId) return false
