@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui
 import { TableView } from '../TableView'
 import { TradingInsights } from '../TradingInsights'
 import { GoalsView } from '../GoalsView'
+import { AdminNoticeEditor } from './AdminNoticeEditor'
 
 interface AdminUserDetailProps {
   user: User
@@ -53,6 +54,9 @@ export function AdminUserDetail({ user, onBack }: AdminUserDetailProps) {
           </div>
         </CardHeader>
       </Card>
+
+      {/* Admin Notice for this user */}
+      <AdminNoticeEditor userId={user.id} currentNotice={user.adminNotice || null} />
 
       {userAccounts.length === 0 ? (
         <Card>

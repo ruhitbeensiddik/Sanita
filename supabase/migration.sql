@@ -547,3 +547,20 @@ DROP TRIGGER IF EXISTS update_payment_requests_modtime ON public.payment_request
 CREATE TRIGGER update_payment_requests_modtime
 BEFORE UPDATE ON public.payment_requests
 FOR EACH ROW EXECUTE PROCEDURE public.update_modified_column();
+
+-- ==========================================
+-- 15. Admin Notice on Profiles
+-- ==========================================
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS admin_notice TEXT NULL;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS admin_notice_updated_at TIMESTAMPTZ NULL;
+
+-- ==========================================
+-- 16. Subscription Start Date on Profiles
+-- ==========================================
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_started_at TIMESTAMPTZ NULL;
+
+-- ==========================================
+-- 17. Indexes for Soft Delete Performance
+-- ==========================================
+CREATE INDEX IF NOT EXISTS idx_trades_is_deleted ON public.trades(is_deleted);
+CREATE INDEX IF NOT EXISTS idx_trades_deleted_at ON public.trades(deleted_at);

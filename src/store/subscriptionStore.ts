@@ -32,7 +32,7 @@ interface SubscriptionStore {
     couponCode: string | null
     termsAccepted: boolean
   }) => Promise<boolean>
-  approvePaymentRequest: (id: string) => Promise<void>
+  approvePaymentRequest: (id: string, days: number) => Promise<void>
   rejectPaymentRequest: (id: string, note: string) => Promise<void>
 
   calculateFinalPrice: (
@@ -244,26 +244,22 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
     return !error
   },
 
-  approvePaymentRequest: async (id) => {
+  approvePaymentRequest: async (id, days) => {
     const req = get().paymentRequests.find(r => r.id === id)
     if (!req) return
 
     // Update payment request status
     await supabase.from('payment_requests').update({ status: 'approved' }).eq('id', id)
 
-    // Calculate expiry
+    // Calculate expiry based on admin-selected days
     const now = new Date()
-    let expiresAt: Date
-    if (req.selectedPlan === 'yearly') {
-      expiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
-    } else {
-      expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
-    }
+    const expiresAt = new Date(now.getTime() + days * 24 * 60 * 60 * 1000)
 
     // Update user's subscription
     await supabase.from('profiles').update({
       subscription_status: 'active',
       subscription_plan: req.selectedPlan,
+      subscription_started_at: now.toISOString(),
       subscription_expires_at: expiresAt.toISOString()
     }).eq('id', req.userId)
 

@@ -101,7 +101,16 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
   const canCreateTrade = () => {
     if (!currentUser) return false
     if (currentUser.role === 'super_admin' || currentUser.role === 'admin') return true
-    if (currentUser.subscriptionStatus === 'active') return true
+    if (currentUser.subscriptionStatus === 'active') {
+      // Check if subscription has expired
+      if (currentUser.subscriptionExpiresAt) {
+        const expiryDate = new Date(currentUser.subscriptionExpiresAt)
+        if (expiryDate > new Date()) return true
+        // Expired - fall through to free trade limit check
+      } else {
+        return true
+      }
+    }
     const activeCount = getActiveTradeCount()
     const limit = currentUser.freeTradeLimit ?? 2
     return activeCount < limit

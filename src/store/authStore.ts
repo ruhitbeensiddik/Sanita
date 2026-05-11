@@ -60,7 +60,10 @@ async function fetchProfile(userId: string): Promise<User | null> {
       subscriptionStatus: (data.subscription_status || 'free') as SubscriptionStatus,
       subscriptionPlan: data.subscription_plan || null,
       subscriptionExpiresAt: data.subscription_expires_at || null,
-      freeTradeLimit: data.free_trade_limit ?? 2
+      subscriptionStartedAt: data.subscription_started_at || null,
+      freeTradeLimit: data.free_trade_limit ?? 2,
+      adminNotice: data.admin_notice || null,
+      adminNoticeUpdatedAt: data.admin_notice_updated_at || null
     }
   } catch (err: any) {
     console.error('[Auth] fetchProfile exception:', err)
@@ -323,7 +326,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             subscriptionStatus: (d.subscription_status || 'free') as SubscriptionStatus,
             subscriptionPlan: d.subscription_plan || null,
             subscriptionExpiresAt: d.subscription_expires_at || null,
-            freeTradeLimit: d.free_trade_limit ?? 2
+            subscriptionStartedAt: d.subscription_started_at || null,
+            freeTradeLimit: d.free_trade_limit ?? 2,
+            adminNotice: d.admin_notice || null,
+            adminNoticeUpdatedAt: d.admin_notice_updated_at || null
           }))
           set({ users: mappedUsers })
         }

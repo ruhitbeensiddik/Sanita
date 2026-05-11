@@ -30,6 +30,7 @@ import { useAccountStore } from './store/accountStore'
 import { AuthPage } from './components/auth/AuthPage'
 import { AccountSwitcher } from './components/layout/AccountSwitcher'
 const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })))
+import { UserNoticeBox } from './components/UserNoticeBox'
 
 function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'table' | 'calendar' | 'goals' | 'admin'>(() => {
@@ -388,6 +389,8 @@ function App() {
         <div className="flex gap-6">
           <Sidebar activeTab={effectiveActiveTab} onChange={(t) => setActiveTab(t as any)} className="hidden lg:block w-64 shrink-0 pr-4" />
           <div className="flex-1 min-w-0">
+            {/* User Notice Box */}
+            {currentUser?.role !== 'super_admin' && <UserNoticeBox />}
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}

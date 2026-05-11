@@ -12,7 +12,10 @@ export interface User {
   subscriptionStatus?: SubscriptionStatus
   subscriptionPlan?: 'monthly' | 'yearly' | null
   subscriptionExpiresAt?: string | null
+  subscriptionStartedAt?: string | null
   freeTradeLimit?: number
+  adminNotice?: string | null
+  adminNoticeUpdatedAt?: string | null
 }
 
 export interface Account {
