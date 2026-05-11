@@ -101,6 +101,8 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
   const canCreateTrade = () => {
     if (!currentUser) return false
     if (currentUser.role === 'super_admin' || currentUser.role === 'admin') return true
+    // Paused users cannot add trades
+    if (currentUser.subscriptionPaused) return false
     if (currentUser.subscriptionStatus === 'active') {
       // Check if subscription has expired
       if (currentUser.subscriptionExpiresAt) {

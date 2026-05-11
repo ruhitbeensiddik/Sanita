@@ -260,7 +260,11 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       subscription_status: 'active',
       subscription_plan: req.selectedPlan,
       subscription_started_at: now.toISOString(),
-      subscription_expires_at: expiresAt.toISOString()
+      subscription_expires_at: expiresAt.toISOString(),
+      subscription_approved_days: days,
+      subscription_paused: false,
+      subscription_paused_at: null,
+      subscription_paused_by: null
     }).eq('id', req.userId)
 
     // Increment coupon usage if coupon was used

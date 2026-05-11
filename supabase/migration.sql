@@ -564,3 +564,17 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_started_at TIM
 -- ==========================================
 CREATE INDEX IF NOT EXISTS idx_trades_is_deleted ON public.trades(is_deleted);
 CREATE INDEX IF NOT EXISTS idx_trades_deleted_at ON public.trades(deleted_at);
+
+-- ==========================================
+-- 18. Pause/Resume & Approved Days on Profiles
+-- ==========================================
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_paused BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_paused_at TIMESTAMPTZ NULL;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_paused_by UUID NULL;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_approved_days INTEGER NULL;
+
+-- ==========================================
+-- 19. First Name / Last Name on Profiles
+-- ==========================================
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS first_name TEXT NULL;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS last_name TEXT NULL;

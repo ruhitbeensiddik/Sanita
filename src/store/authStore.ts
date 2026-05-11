@@ -21,7 +21,7 @@ interface AuthState {
   // Actions
   initializeAuth: () => void
   login: (email: string, password: string) => Promise<User | null>
-  register: (email: string, password: string) => Promise<{ user: User | null; pendingApproval?: boolean }>
+  register: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ user: User | null; pendingApproval?: boolean }>
   logout: () => Promise<void>
   
   // Admin Actions
@@ -61,9 +61,13 @@ async function fetchProfile(userId: string): Promise<User | null> {
       subscriptionPlan: data.subscription_plan || null,
       subscriptionExpiresAt: data.subscription_expires_at || null,
       subscriptionStartedAt: data.subscription_started_at || null,
+      subscriptionPaused: data.subscription_paused || false,
+      subscriptionApprovedDays: data.subscription_approved_days || null,
       freeTradeLimit: data.free_trade_limit ?? 2,
       adminNotice: data.admin_notice || null,
-      adminNoticeUpdatedAt: data.admin_notice_updated_at || null
+      adminNoticeUpdatedAt: data.admin_notice_updated_at || null,
+      firstName: data.first_name || null,
+      lastName: data.last_name || null
     }
   } catch (err: any) {
     console.error('[Auth] fetchProfile exception:', err)
@@ -216,7 +220,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  register: async (email, password) => {
+  register: async (email, password, firstName, lastName) => {
     set({ isLoading: true, error: null })
     _registerInProgress = true
     
@@ -253,7 +257,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                   id: data.user.id,
                   email,
                   role: 'user',
-                  status: 'pending'
+                  status: 'pending',
+                  first_name: firstName || null,
+                  last_name: lastName || null
                 }).select().single()
 
                 if (insertError) {
@@ -327,9 +333,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             subscriptionPlan: d.subscription_plan || null,
             subscriptionExpiresAt: d.subscription_expires_at || null,
             subscriptionStartedAt: d.subscription_started_at || null,
+            subscriptionPaused: d.subscription_paused || false,
+            subscriptionApprovedDays: d.subscription_approved_days || null,
             freeTradeLimit: d.free_trade_limit ?? 2,
             adminNotice: d.admin_notice || null,
-            adminNoticeUpdatedAt: d.admin_notice_updated_at || null
+            adminNoticeUpdatedAt: d.admin_notice_updated_at || null,
+            firstName: d.first_name || null,
+            lastName: d.last_name || null
           }))
           set({ users: mappedUsers })
         }

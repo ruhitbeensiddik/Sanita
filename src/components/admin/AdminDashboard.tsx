@@ -240,7 +240,7 @@ export function AdminDashboard() {
                 <table className="w-full text-sm text-left">
                   <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
                     <tr>
-                      <th className="px-4 py-3">Email</th><th className="px-4 py-3">Role</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Subscription</th><th className="px-4 py-3">Accounts</th><th className="px-4 py-3 text-right">Actions</th>
+                      <th className="px-4 py-3">Name</th><th className="px-4 py-3">Email</th><th className="px-4 py-3">Role</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Subscription</th><th className="px-4 py-3">Accounts</th><th className="px-4 py-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -252,6 +252,9 @@ export function AdminDashboard() {
                       const isTargetUser = user.role === 'user'
                       return (
                         <tr key={user.id} className="hover:bg-muted/30">
+                          <td className="px-4 py-4 text-sm text-muted-foreground">
+                            {[user.firstName, user.lastName].filter(Boolean).join(' ') || '-'}
+                          </td>
                           <td className="px-4 py-4 font-medium text-foreground">
                             <div className="flex items-center gap-2">{user.email}
                               {isProtected && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-500 border border-indigo-500/20"><Shield className="h-2.5 w-2.5" /> PROTECTED</span>}

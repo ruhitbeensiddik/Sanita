@@ -29,6 +29,8 @@ export function AuthPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [error, setError] = useState('')
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
@@ -58,7 +60,6 @@ export function AuthPage() {
         toast.error(storeError)
       }
     } else {
-      // Confirm password validation
       if (password !== confirmPassword) {
         const msg = 'Passwords do not match. Please try again.'
         setError(msg)
@@ -66,7 +67,14 @@ export function AuthPage() {
         return
       }
 
-      const result = await register(email, password)
+      if (!firstName.trim() || !lastName.trim()) {
+        const msg = 'Please enter your first name and last name.'
+        setError(msg)
+        toast.error(msg)
+        return
+      }
+
+      const result = await register(email, password, firstName.trim(), lastName.trim())
       if (!result.user) {
         const storeError = useAuthStore.getState().error || 'Registration failed.'
         setError(storeError)
@@ -77,6 +85,8 @@ export function AuthPage() {
         setEmail('')
         setPassword('')
         setConfirmPassword('')
+        setFirstName('')
+        setLastName('')
         setIsLogin(true)
         setError('')
       }
@@ -165,6 +175,44 @@ export function AuthPage() {
               >
                 {error}
               </motion.div>
+            )}
+
+            {/* First Name & Last Name — registration only */}
+            {!isLogin && (
+              <div className="auth-form-field" style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ flex: 1 }}>
+                  <label className="auth-form-label" htmlFor="auth-first-name">
+                    First Name
+                  </label>
+                  <div className="auth-form-input-wrapper">
+                    <input
+                      id="auth-first-name"
+                      type="text"
+                      className="auth-form-input"
+                      placeholder="John"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      autoComplete="given-name"
+                    />
+                  </div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label className="auth-form-label" htmlFor="auth-last-name">
+                    Last Name
+                  </label>
+                  <div className="auth-form-input-wrapper">
+                    <input
+                      id="auth-last-name"
+                      type="text"
+                      className="auth-form-input"
+                      placeholder="Doe"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      autoComplete="family-name"
+                    />
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* Email field */}
@@ -312,6 +360,8 @@ export function AuthPage() {
                 setIsLogin(!isLogin)
                 setError('')
                 setConfirmPassword('')
+                setFirstName('')
+                setLastName('')
               }}
             >
               {isLogin ? 'Sign up' : 'Log in'}
