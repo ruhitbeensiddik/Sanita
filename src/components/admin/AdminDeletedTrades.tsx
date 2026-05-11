@@ -53,14 +53,22 @@ export function AdminDeletedTrades() {
   })
 
   const handleRestore = async (id: string) => {
-    await restoreTrade(id)
-    toast.success('Trade restored successfully! It is now visible to the user.')
+    const ok = await restoreTrade(id)
+    if (ok) {
+      toast.success('Trade restored successfully! It is now visible to the user.')
+    } else {
+      toast.error('Failed to restore trade. Check console for details.')
+    }
   }
 
   const handlePermanentDelete = async (id: string) => {
-    await permanentlyDeleteTrade(id)
+    const ok = await permanentlyDeleteTrade(id)
     setShowConfirmDelete(null)
-    toast.success('Trade permanently deleted from the database.')
+    if (ok) {
+      toast.success('Trade permanently deleted from the database.')
+    } else {
+      toast.error('Failed to permanently delete. Check console for details.')
+    }
   }
 
   return (

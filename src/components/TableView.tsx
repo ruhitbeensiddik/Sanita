@@ -193,12 +193,21 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
     setDuplicatingTrade(null)
   }
 
-  const deleteBulkTrades = () => {
+  const deleteBulkTrades = async () => {
     if (bulkSelect.length === 0) return
     
-    bulkSelect.forEach(tradeId => deleteTrade(tradeId))
+    const ids = [...bulkSelect]
     setBulkSelect([])
-    toast.success(`${bulkSelect.length} trade(s) moved to trash.`)
+    let successCount = 0
+    for (const tradeId of ids) {
+      const ok = await deleteTrade(tradeId)
+      if (ok) successCount++
+    }
+    if (successCount === ids.length) {
+      toast.success(`${successCount} trade(s) moved to trash.`)
+    } else {
+      toast.error(`${successCount}/${ids.length} trades deleted. Some failed — check console.`)
+    }
   }
 
   const handleSort = (field: SortField) => {
@@ -699,10 +708,14 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                   e.stopPropagation()
-                                  deleteTrade(trade.id)
-                                  toast.success('Trade moved to trash')
+                                  const ok = await deleteTrade(trade.id)
+                                  if (ok) {
+                                    toast.success('Trade moved to trash')
+                                  } else {
+                                    toast.error('Failed to delete trade. Check console for details.')
+                                  }
                                 }}
                                 className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                                 title="Delete trade"

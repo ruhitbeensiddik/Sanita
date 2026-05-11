@@ -136,9 +136,9 @@ interface TradeStore {
 
   addTrade: (trade: Omit<Trade, 'id'>) => Promise<void>
   updateTrade: (id: string, trade: Partial<Trade>) => Promise<void>
-  deleteTrade: (id: string) => Promise<void>
-  permanentlyDeleteTrade: (id: string) => Promise<void>
-  restoreTrade: (id: string) => Promise<void>
+  deleteTrade: (id: string) => Promise<boolean>
+  permanentlyDeleteTrade: (id: string) => Promise<boolean>
+  restoreTrade: (id: string) => Promise<boolean>
   fetchDeletedTrades: () => Promise<void>
   getActiveTradeCount: () => number
   setCurrentMonth: (year: number, month: number) => void
@@ -247,52 +247,99 @@ export const useTradeStore = create<TradeStore>((set, get) => ({
     // Soft delete: set is_deleted = true, deleted_at = now(), deleted_by = current user
     const currentUser = useAuthStore.getState().currentUser
     const now = new Date().toISOString()
-    const { error } = await supabase.from('trades').update({
-      is_deleted: true,
-      deleted_at: now,
-      deleted_by: currentUser?.id || null
-    }).eq('id', id)
-    if (!error) {
-      // Always remove from active trades (deleted trades belong only in deletedTrades)
-      set({ trades: get().trades.filter(t => t.id !== id) })
+    
+    // Optimistically remove from UI immediately
+    const previousTrades = get().trades
+    set({ trades: previousTrades.filter(t => t.id !== id) })
+    
+    try {
+      const { error } = await supabase.from('trades').update({
+        is_deleted: true,
+        deleted_at: now,
+        deleted_by: currentUser?.id || null
+      }).eq('id', id)
+      
+      if (error) {
+        console.error('[TradeStore] Soft delete failed:', error.message, error)
+        // Revert: put the trade back
+        set({ trades: previousTrades })
+        return false
+      }
+      return true
+    } catch (err) {
+      console.error('[TradeStore] Soft delete exception:', err)
+      set({ trades: previousTrades })
+      return false
     }
   },
 
   permanentlyDeleteTrade: async (id) => {
-    const { error } = await supabase.from('trades').delete().eq('id', id)
-    if (!error) {
-      // Remove from both active and deleted lists
-      set({
-        trades: get().trades.filter(t => t.id !== id),
-        deletedTrades: get().deletedTrades.filter(t => t.id !== id)
-      })
+    const previousTrades = get().trades
+    const previousDeleted = get().deletedTrades
+    
+    // Optimistically remove from both lists
+    set({
+      trades: previousTrades.filter(t => t.id !== id),
+      deletedTrades: previousDeleted.filter(t => t.id !== id)
+    })
+    
+    try {
+      const { error } = await supabase.from('trades').delete().eq('id', id)
+      if (error) {
+        console.error('[TradeStore] Permanent delete failed:', error.message, error)
+        set({ trades: previousTrades, deletedTrades: previousDeleted })
+        return false
+      }
+      return true
+    } catch (err) {
+      console.error('[TradeStore] Permanent delete exception:', err)
+      set({ trades: previousTrades, deletedTrades: previousDeleted })
+      return false
     }
   },
 
   restoreTrade: async (id) => {
-    const { error, data } = await supabase.from('trades').update({
-      is_deleted: false,
-      deleted_at: null,
-      deleted_by: null
-    }).eq('id', id).select().single()
-    if (!error && data) {
+    try {
+      const { error, data } = await supabase.from('trades').update({
+        is_deleted: false,
+        deleted_at: null,
+        deleted_by: null
+      }).eq('id', id).select().single()
+      
+      if (error || !data) {
+        console.error('[TradeStore] Restore failed:', error?.message, error)
+        return false
+      }
+      
       const restoredTrade = mapTradeFromSupabase(data)
       // Add back to active trades, remove from deleted trades
       set({
         trades: [restoredTrade, ...get().trades],
         deletedTrades: get().deletedTrades.filter(t => t.id !== id)
       })
+      return true
+    } catch (err) {
+      console.error('[TradeStore] Restore exception:', err)
+      return false
     }
   },
 
   fetchDeletedTrades: async () => {
     // Super admin only: fetch all soft-deleted trades for the trash panel
-    const { data, error } = await supabase.from('trades')
-      .select('*')
-      .eq('is_deleted', true)
-      .order('deleted_at', { ascending: false })
-    if (!error && data) {
-      set({ deletedTrades: data.map(mapTradeFromSupabase) })
+    try {
+      const { data, error } = await supabase.from('trades')
+        .select('*')
+        .eq('is_deleted', true)
+        .order('deleted_at', { ascending: false })
+      if (error) {
+        console.error('[TradeStore] fetchDeletedTrades failed:', error.message, error)
+        return
+      }
+      if (data) {
+        set({ deletedTrades: data.map(mapTradeFromSupabase) })
+      }
+    } catch (err) {
+      console.error('[TradeStore] fetchDeletedTrades exception:', err)
     }
   },
 
