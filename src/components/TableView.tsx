@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-hot-toast'
 import { useTradeStore } from '../store/tradeStore'
 import { useAccountStore } from '../store/accountStore'
+import { useAuthStore } from '../store/authStore'
 import { Trade } from '../types/trade'
 import { formatCurrency } from '../lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
@@ -44,6 +45,8 @@ import { ExportModal } from './ExportModal'
 import { TradingInsights } from './TradingInsights'
 import { TradeDetailModal } from './TradeDetailModal'
 import { TradeFormModal } from './TradeFormModal'
+import { PremiumPopup } from './subscription/PremiumPopup'
+import { CheckoutModal } from './subscription/CheckoutModal'
 
 import { calculateTradeMetrics } from '../lib/tradeUtils'
 
@@ -58,8 +61,9 @@ interface TableViewProps {
 
 export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideControls }: TableViewProps) {
   const storeTrades = useTradeStore(state => state.trades)
-  const { getCurrentMonthTrades, updateTrade, deleteTrade } = useTradeStore()
+  const { getCurrentMonthTrades, updateTrade, deleteTrade, getActiveTradeCount } = useTradeStore()
   const { activeAccountId } = useAccountStore()
+  const { currentUser } = useAuthStore()
   
   const currentViewAccountId = adminOverrideAccountId || activeAccountId
 
@@ -88,6 +92,20 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
   const [showTradeForm, setShowTradeForm] = useState(false)
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null)
   const [duplicatingTrade, setDuplicatingTrade] = useState<Trade | null>(null)
+
+  // Premium popup state
+  const [showPremiumPopup, setShowPremiumPopup] = useState(false)
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false)
+  const [checkoutData, setCheckoutData] = useState<{ plan: string; originalPrice: number; totalDiscount: number; finalPrice: number; couponCode: string | null } | null>(null)
+
+  const canCreateTrade = () => {
+    if (!currentUser) return false
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') return true
+    if (currentUser.subscriptionStatus === 'active') return true
+    const activeCount = getActiveTradeCount()
+    const limit = currentUser.freeTradeLimit ?? 2
+    return activeCount < limit
+  }
 
   // Filter and sort trades
   const filteredTrades = useMemo(() => {
@@ -148,6 +166,10 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
   }, [])
 
   const openAddTradeModal = () => {
+    if (!canCreateTrade()) {
+      setShowPremiumPopup(true)
+      return
+    }
     setEditingTrade(null)
     setDuplicatingTrade(null)
     setShowTradeForm(true)
@@ -176,7 +198,7 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
     
     bulkSelect.forEach(tradeId => deleteTrade(tradeId))
     setBulkSelect([])
-    toast.success(`${bulkSelect.length} trades deleted successfully!`)
+    toast.success(`${bulkSelect.length} trade(s) moved to trash.`)
   }
 
   const handleSort = (field: SortField) => {
@@ -680,7 +702,7 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   deleteTrade(trade.id)
-                                  toast.success('Trade deleted successfully')
+                                  toast.success('Trade moved to trash')
                                 }}
                                 className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                                 title="Delete trade"
@@ -797,6 +819,30 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
         isOpen={!!inspectingTrade}
         onClose={() => setInspectingTrade(null)}
       />
+
+      {/* Premium Popup */}
+      <PremiumPopup
+        isOpen={showPremiumPopup}
+        onClose={() => setShowPremiumPopup(false)}
+        onCheckout={(plan, originalPrice, totalDiscount, finalPrice, couponCode) => {
+          setCheckoutData({ plan, originalPrice, totalDiscount, finalPrice, couponCode })
+          setShowPremiumPopup(false)
+          setShowCheckoutModal(true)
+        }}
+      />
+
+      {/* Checkout Modal */}
+      {checkoutData && (
+        <CheckoutModal
+          isOpen={showCheckoutModal}
+          onClose={() => { setShowCheckoutModal(false); setCheckoutData(null) }}
+          plan={checkoutData.plan}
+          originalPrice={checkoutData.originalPrice}
+          totalDiscount={checkoutData.totalDiscount}
+          finalPrice={checkoutData.finalPrice}
+          couponCode={checkoutData.couponCode}
+        />
+      )}
     </div>
   )
 }

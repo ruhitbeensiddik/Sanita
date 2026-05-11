@@ -34,6 +34,10 @@ export interface Trade {
   brokerAccount?: string
   openTime?: string // ISO timestamp
   closeTime?: string // ISO timestamp
+  // Soft delete fields
+  isDeleted?: boolean
+  deletedAt?: string | null
+  deletedBy?: string | null
 }
 
 export interface TradeMonth {

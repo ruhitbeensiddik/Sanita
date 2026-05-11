@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { User, Role, AccountStatus } from '../types/auth'
+import { User, Role, AccountStatus, SubscriptionStatus } from '../types/auth'
 import { supabase } from '../lib/supabase'
 
 export function isDefaultSuperAdmin(userId: string): boolean {
@@ -56,7 +56,11 @@ async function fetchProfile(userId: string): Promise<User | null> {
       email: data.email,
       role: data.role as Role,
       status: data.status as AccountStatus,
-      createdAt: data.created_at
+      createdAt: data.created_at,
+      subscriptionStatus: (data.subscription_status || 'free') as SubscriptionStatus,
+      subscriptionPlan: data.subscription_plan || null,
+      subscriptionExpiresAt: data.subscription_expires_at || null,
+      freeTradeLimit: data.free_trade_limit ?? 2
     }
   } catch (err: any) {
     console.error('[Auth] fetchProfile exception:', err)
@@ -315,7 +319,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             email: d.email,
             role: d.role as Role,
             status: d.status as AccountStatus,
-            createdAt: d.created_at
+            createdAt: d.created_at,
+            subscriptionStatus: (d.subscription_status || 'free') as SubscriptionStatus,
+            subscriptionPlan: d.subscription_plan || null,
+            subscriptionExpiresAt: d.subscription_expires_at || null,
+            freeTradeLimit: d.free_trade_limit ?? 2
           }))
           set({ users: mappedUsers })
         }

@@ -306,3 +306,244 @@ EXCEPTION
   WHEN duplicate_table THEN
     NULL;
 END $$;
+
+-- ==========================================
+-- 6. Soft Delete Columns on Trades
+-- ==========================================
+-- Add soft-delete columns (idempotent)
+ALTER TABLE public.trades ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.trades ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ NULL;
+ALTER TABLE public.trades ADD COLUMN IF NOT EXISTS deleted_by UUID NULL;
+
+-- Backfill: ensure all existing trades are marked as active
+UPDATE public.trades SET is_deleted = FALSE WHERE is_deleted IS NULL;
+
+-- ==========================================
+-- 7. Subscription Columns on Profiles
+-- ==========================================
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'free';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_plan TEXT NULL;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_expires_at TIMESTAMPTZ NULL;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS free_trade_limit INTEGER DEFAULT 2;
+
+-- Backfill defaults for existing profiles
+UPDATE public.profiles SET subscription_status = 'free' WHERE subscription_status IS NULL;
+UPDATE public.profiles SET free_trade_limit = 2 WHERE free_trade_limit IS NULL;
+
+-- ==========================================
+-- 8. Updated Trades RLS Policies
+-- ==========================================
+-- Drop old all-in-one user policy and replace with granular ones
+
+DROP POLICY IF EXISTS "Users can manage own trades" ON public.trades;
+
+-- Normal users can only SEE their own non-deleted trades
+DROP POLICY IF EXISTS "Users can select own active trades" ON public.trades;
+CREATE POLICY "Users can select own active trades"
+  ON public.trades FOR SELECT
+  USING (
+    auth.uid() = user_id
+    AND is_deleted = false
+  );
+
+-- Normal users can INSERT own trades
+DROP POLICY IF EXISTS "Users can insert own trades" ON public.trades;
+CREATE POLICY "Users can insert own trades"
+  ON public.trades FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- Normal users can UPDATE own non-deleted trades (includes soft-delete action)
+DROP POLICY IF EXISTS "Users can update own trades" ON public.trades;
+CREATE POLICY "Users can update own trades"
+  ON public.trades FOR UPDATE
+  USING (auth.uid() = user_id);
+
+-- Normal users CANNOT hard delete trades (no DELETE policy for regular users)
+
+-- Super admin full access to all trades (including deleted)
+DROP POLICY IF EXISTS "Super admins can view all trades" ON public.trades;
+CREATE POLICY "Super admins can view all trades"
+  ON public.trades FOR SELECT
+  USING (public.is_super_admin());
+
+DROP POLICY IF EXISTS "Super admins can update all trades" ON public.trades;
+CREATE POLICY "Super admins can update all trades"
+  ON public.trades FOR UPDATE
+  USING (public.is_super_admin());
+
+DROP POLICY IF EXISTS "Super admins can delete all trades" ON public.trades;
+CREATE POLICY "Super admins can delete all trades"
+  ON public.trades FOR DELETE
+  USING (public.is_super_admin());
+
+-- ==========================================
+-- 9. Helper: Get Active Trade Count
+-- ==========================================
+CREATE OR REPLACE FUNCTION public.get_active_trade_count(user_uuid UUID)
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  trade_count INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO trade_count
+  FROM public.trades
+  WHERE user_id = user_uuid AND is_deleted = false;
+  RETURN trade_count;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_active_trade_count(UUID) TO authenticated;
+
+-- ==========================================
+-- 10. Subscription Settings Table (single row)
+-- ==========================================
+CREATE TABLE IF NOT EXISTS public.subscription_settings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  monthly_price NUMERIC NOT NULL DEFAULT 10,
+  yearly_price NUMERIC NOT NULL DEFAULT 100,
+  global_discount_percent NUMERIC NOT NULL DEFAULT 0,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.subscription_settings ENABLE ROW LEVEL SECURITY;
+
+-- Seed default row if empty
+INSERT INTO public.subscription_settings (monthly_price, yearly_price, global_discount_percent)
+SELECT 10, 100, 0
+WHERE NOT EXISTS (SELECT 1 FROM public.subscription_settings);
+
+-- Everyone can read settings
+DROP POLICY IF EXISTS "Anyone can read subscription settings" ON public.subscription_settings;
+CREATE POLICY "Anyone can read subscription settings"
+  ON public.subscription_settings FOR SELECT
+  USING (true);
+
+-- Only super admin can update
+DROP POLICY IF EXISTS "Super admin can update subscription settings" ON public.subscription_settings;
+CREATE POLICY "Super admin can update subscription settings"
+  ON public.subscription_settings FOR UPDATE
+  USING (public.is_super_admin());
+
+-- ==========================================
+-- 11. Coupons Table
+-- ==========================================
+CREATE TABLE IF NOT EXISTS public.coupons (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code TEXT NOT NULL,
+  discount_percent NUMERIC NOT NULL DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  valid_from TIMESTAMPTZ DEFAULT NOW(),
+  valid_until TIMESTAMPTZ NULL,
+  max_uses INTEGER NULL,
+  current_uses INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
+
+-- Add unique constraint on code (idempotent)
+DO $$
+BEGIN
+  ALTER TABLE public.coupons ADD CONSTRAINT coupons_code_unique UNIQUE (code);
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+  WHEN duplicate_table THEN NULL;
+END $$;
+
+-- Authenticated users can read active coupons (for validation)
+DROP POLICY IF EXISTS "Authenticated can read active coupons" ON public.coupons;
+CREATE POLICY "Authenticated can read active coupons"
+  ON public.coupons FOR SELECT
+  USING (auth.role() = 'authenticated');
+
+-- Super admin full management
+DROP POLICY IF EXISTS "Super admin can manage coupons" ON public.coupons;
+CREATE POLICY "Super admin can manage coupons"
+  ON public.coupons FOR ALL
+  USING (public.is_super_admin())
+  WITH CHECK (public.is_super_admin());
+
+-- ==========================================
+-- 12. User Discounts Table
+-- ==========================================
+CREATE TABLE IF NOT EXISTS public.user_discounts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  discount_percent NUMERIC NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.user_discounts ENABLE ROW LEVEL SECURITY;
+
+-- Add unique constraint on user_id
+DO $$
+BEGIN
+  ALTER TABLE public.user_discounts ADD CONSTRAINT user_discounts_user_id_unique UNIQUE (user_id);
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+  WHEN duplicate_table THEN NULL;
+END $$;
+
+-- Users can read their own discount
+DROP POLICY IF EXISTS "Users can read own discount" ON public.user_discounts;
+CREATE POLICY "Users can read own discount"
+  ON public.user_discounts FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Super admin can read all + manage
+DROP POLICY IF EXISTS "Super admin can manage user discounts" ON public.user_discounts;
+CREATE POLICY "Super admin can manage user discounts"
+  ON public.user_discounts FOR ALL
+  USING (public.is_super_admin())
+  WITH CHECK (public.is_super_admin());
+
+-- ==========================================
+-- 13. Payment Requests Table
+-- ==========================================
+CREATE TABLE IF NOT EXISTS public.payment_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  selected_plan TEXT NOT NULL,
+  original_price NUMERIC NOT NULL,
+  discount_percent NUMERIC NOT NULL DEFAULT 0,
+  final_price NUMERIC NOT NULL,
+  coupon_code TEXT NULL,
+  payment_method TEXT NULL,
+  transaction_reference TEXT NULL,
+  terms_accepted BOOLEAN DEFAULT FALSE,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  admin_note TEXT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.payment_requests ENABLE ROW LEVEL SECURITY;
+
+-- Users can read own payment requests
+DROP POLICY IF EXISTS "Users can read own payment requests" ON public.payment_requests;
+CREATE POLICY "Users can read own payment requests"
+  ON public.payment_requests FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Users can create own payment requests
+DROP POLICY IF EXISTS "Users can create own payment requests" ON public.payment_requests;
+CREATE POLICY "Users can create own payment requests"
+  ON public.payment_requests FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- Super admin can view/manage all payment requests
+DROP POLICY IF EXISTS "Super admin can manage payment requests" ON public.payment_requests;
+CREATE POLICY "Super admin can manage payment requests"
+  ON public.payment_requests FOR ALL
+  USING (public.is_super_admin())
+  WITH CHECK (public.is_super_admin());
+
+-- Trigger for updated_at on payment_requests
+DROP TRIGGER IF EXISTS update_payment_requests_modtime ON public.payment_requests;
+CREATE TRIGGER update_payment_requests_modtime
+BEFORE UPDATE ON public.payment_requests
+FOR EACH ROW EXECUTE PROCEDURE public.update_modified_column();

@@ -33,7 +33,10 @@ function mapTradeFromSupabase(d: any): Trade {
     externalId: d.external_id,
     brokerAccount: d.broker_account,
     openTime: d.open_time,
-    closeTime: d.close_time
+    closeTime: d.close_time,
+    isDeleted: d.is_deleted || false,
+    deletedAt: d.deleted_at || null,
+    deletedBy: d.deleted_by || null
   }
 }
 
@@ -66,6 +69,9 @@ function mapTradeToSupabase(t: Partial<Trade>) {
   if (t.brokerAccount !== undefined) s.broker_account = t.brokerAccount
   if (t.openTime !== undefined) s.open_time = t.openTime
   if (t.closeTime !== undefined) s.close_time = t.closeTime
+  if (t.isDeleted !== undefined) s.is_deleted = t.isDeleted
+  if (t.deletedAt !== undefined) s.deleted_at = t.deletedAt
+  if (t.deletedBy !== undefined) s.deleted_by = t.deletedBy
   return s
 }
 
@@ -130,6 +136,9 @@ interface TradeStore {
   addTrade: (trade: Omit<Trade, 'id'>) => Promise<void>
   updateTrade: (id: string, trade: Partial<Trade>) => Promise<void>
   deleteTrade: (id: string) => Promise<void>
+  permanentlyDeleteTrade: (id: string) => Promise<void>
+  restoreTrade: (id: string) => Promise<void>
+  getActiveTradeCount: () => number
   setCurrentMonth: (year: number, month: number) => void
   getCurrentMonthTrades: (accountId?: string | null, requestedUserId?: string | null) => Trade[]
   getTradeSummary: (accountId?: string | null, requestedUserId?: string | null) => TradeSummary
@@ -228,10 +237,47 @@ export const useTradeStore = create<TradeStore>((set, get) => ({
   },
   
   deleteTrade: async (id) => {
+    // Soft delete: set is_deleted = true, deleted_at = now(), deleted_by = current user
+    const currentUser = useAuthStore.getState().currentUser
+    const now = new Date().toISOString()
+    const { error } = await supabase.from('trades').update({
+      is_deleted: true,
+      deleted_at: now,
+      deleted_by: currentUser?.id || null
+    }).eq('id', id)
+    if (!error) {
+      // For normal users, remove from local state (they can't see deleted trades)
+      // For super admin, update the local state to reflect soft delete
+      if (currentUser?.role === 'super_admin') {
+        set({ trades: get().trades.map(t => t.id === id ? { ...t, isDeleted: true, deletedAt: now, deletedBy: currentUser?.id || null } : t) })
+      } else {
+        set({ trades: get().trades.filter(t => t.id !== id) })
+      }
+    }
+  },
+
+  permanentlyDeleteTrade: async (id) => {
     const { error } = await supabase.from('trades').delete().eq('id', id)
     if (!error) {
       set({ trades: get().trades.filter(t => t.id !== id) })
     }
+  },
+
+  restoreTrade: async (id) => {
+    const { error } = await supabase.from('trades').update({
+      is_deleted: false,
+      deleted_at: null,
+      deleted_by: null
+    }).eq('id', id)
+    if (!error) {
+      set({ trades: get().trades.map(t => t.id === id ? { ...t, isDeleted: false, deletedAt: null, deletedBy: null } : t) })
+    }
+  },
+
+  getActiveTradeCount: () => {
+    const currentUser = useAuthStore.getState().currentUser
+    if (!currentUser) return 0
+    return get().trades.filter(t => t.userId === currentUser.id && !t.isDeleted).length
   },
   
   setCurrentMonth: (year, month) => set({ currentMonth: { year, month } }),

@@ -6,6 +6,8 @@ import { useAuthStore } from '../store/authStore'
 import { useAccountStore } from '../store/accountStore'
 import { Trade } from '../types/trade'
 import { ImageUpload } from './ui/ImageUpload'
+import { PremiumPopup } from './subscription/PremiumPopup'
+import { CheckoutModal } from './subscription/CheckoutModal'
 import {
   X,
   TrendingUp,
@@ -121,12 +123,15 @@ function tradeToFormData(trade: Trade): FormData {
 }
 
 export function TradeFormModal({ isOpen, onClose, editTrade, prefillDate, duplicateFrom }: TradeFormModalProps) {
-  const { addTrade, updateTrade } = useTradeStore()
+  const { addTrade, updateTrade, getActiveTradeCount } = useTradeStore()
   const { currentUser } = useAuthStore()
   const { activeAccountId } = useAccountStore()
   const [formData, setFormData] = useState<FormData>(getDefaultFormData())
   const [errors, setErrors] = useState<FormErrors>({})
   const [activeSection, setActiveSection] = useState(0)
+  const [showPremiumPopup, setShowPremiumPopup] = useState(false)
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false)
+  const [checkoutData, setCheckoutData] = useState<{ plan: string; originalPrice: number; totalDiscount: number; finalPrice: number; couponCode: string | null } | null>(null)
 
   const isEditing = !!editTrade
 
@@ -259,6 +264,15 @@ export function TradeFormModal({ isOpen, onClose, editTrade, prefillDate, duplic
       updateTrade(editTrade.id, tradeData)
       toast.success('Trade updated successfully!')
     } else {
+      // Check free trade limit for new trades
+      if (currentUser && currentUser.role !== 'super_admin' && currentUser.role !== 'admin' && currentUser.subscriptionStatus !== 'active') {
+        const activeCount = getActiveTradeCount()
+        const limit = currentUser.freeTradeLimit ?? 2
+        if (activeCount >= limit) {
+          setShowPremiumPopup(true)
+          return
+        }
+      }
       addTrade(tradeData)
       toast.success('Trade added successfully!')
     }
@@ -275,6 +289,7 @@ export function TradeFormModal({ isOpen, onClose, editTrade, prefillDate, duplic
   ]
 
   return (
+    <>
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -589,5 +604,29 @@ export function TradeFormModal({ isOpen, onClose, editTrade, prefillDate, duplic
         </motion.div>
       )}
     </AnimatePresence>
+
+      {/* Premium Popup (shown when free trade limit reached during save) */}
+      <PremiumPopup
+        isOpen={showPremiumPopup}
+        onClose={() => setShowPremiumPopup(false)}
+        onCheckout={(plan, originalPrice, totalDiscount, finalPrice, couponCode) => {
+          setCheckoutData({ plan, originalPrice, totalDiscount, finalPrice, couponCode })
+          setShowPremiumPopup(false)
+          setShowCheckoutModal(true)
+        }}
+      />
+
+      {checkoutData && (
+        <CheckoutModal
+          isOpen={showCheckoutModal}
+          onClose={() => { setShowCheckoutModal(false); setCheckoutData(null) }}
+          plan={checkoutData.plan}
+          originalPrice={checkoutData.originalPrice}
+          totalDiscount={checkoutData.totalDiscount}
+          finalPrice={checkoutData.finalPrice}
+          couponCode={checkoutData.couponCode}
+        />
+      )}
+    </>
   )
 }
