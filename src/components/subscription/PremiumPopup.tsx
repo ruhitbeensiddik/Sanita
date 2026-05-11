@@ -42,6 +42,10 @@ export function PremiumPopup({ isOpen, onClose, onCheckout }: PremiumPopupProps)
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return
+    if (selectedPlan !== 'yearly') {
+      toast.error('Coupons are only available for yearly subscriptions.')
+      return
+    }
     setValidatingCoupon(true)
     const coupon = await validateCoupon(couponCode.trim())
     setValidatingCoupon(false)
@@ -53,6 +57,16 @@ export function PremiumPopup({ isOpen, onClose, onCheckout }: PremiumPopupProps)
       setCouponDiscount(0)
       setCouponApplied(false)
       toast.error('Invalid or expired coupon code.')
+    }
+  }
+
+  // Reset coupon when switching to monthly
+  const handlePlanChange = (plan: 'monthly' | 'yearly') => {
+    setSelectedPlan(plan)
+    if (plan === 'monthly') {
+      setCouponDiscount(0)
+      setCouponApplied(false)
+      setCouponCode('')
     }
   }
 
@@ -81,7 +95,7 @@ export function PremiumPopup({ isOpen, onClose, onCheckout }: PremiumPopupProps)
                 {/* Plan Selection */}
                 <div className="grid grid-cols-2 gap-3">
                   {[{ plan: 'monthly' as const, price: monthlyPrice, label: 'Monthly', period: '/mo' }, { plan: 'yearly' as const, price: yearlyPrice, label: 'Yearly', period: '/yr', badge: 'Best Value' }].map(({ plan, price, label, period, badge }) => (
-                    <button key={plan} onClick={() => setSelectedPlan(plan)}
+                    <button key={plan} onClick={() => handlePlanChange(plan)}
                       className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${selectedPlan === plan ? 'border-emerald-500 bg-emerald-500/5 shadow-md' : 'border-border hover:border-muted-foreground/40'}`}>
                       {badge && <span className="absolute -top-2.5 left-3 px-2 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold rounded-full">{badge}</span>}
                       <div className="text-xs text-muted-foreground mb-1">{label}</div>
@@ -95,12 +109,13 @@ export function PremiumPopup({ isOpen, onClose, onCheckout }: PremiumPopupProps)
                 <div className="space-y-2">
                   <label className="text-sm font-medium flex items-center gap-1.5"><Ticket className="h-4 w-4 text-purple-500" /> Coupon Code</label>
                   <div className="flex gap-2">
-                    <Input value={couponCode} onChange={e => setCouponCode(e.target.value)} placeholder="Enter coupon code" disabled={couponApplied}
+                    <Input value={couponCode} onChange={e => setCouponCode(e.target.value)} placeholder="Enter coupon code" disabled={couponApplied || selectedPlan === 'monthly'}
                       onKeyDown={e => { if (e.key === 'Enter') handleApplyCoupon() }} />
-                    <Button variant="outline" onClick={handleApplyCoupon} disabled={validatingCoupon || couponApplied || !couponCode.trim()}>
+                    <Button variant="outline" onClick={handleApplyCoupon} disabled={validatingCoupon || couponApplied || !couponCode.trim() || selectedPlan === 'monthly'}>
                       {couponApplied ? '✓ Applied' : validatingCoupon ? '...' : 'Apply'}
                     </Button>
                   </div>
+                  <p className="text-[11px] text-muted-foreground">Coupons are only valid for yearly subscription plans.</p>
                   {couponApplied && <p className="text-xs text-emerald-600 font-medium">Coupon discount: {couponDiscount}% off</p>}
                 </div>
 

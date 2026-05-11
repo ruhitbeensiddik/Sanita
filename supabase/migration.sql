@@ -578,3 +578,10 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_approved_days 
 -- ==========================================
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS first_name TEXT NULL;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS last_name TEXT NULL;
+
+-- ==========================================
+-- 20. Unique Email Index on Profiles
+-- ==========================================
+CREATE UNIQUE INDEX IF NOT EXISTS profiles_email_unique_idx
+ON public.profiles (lower(email))
+WHERE email IS NOT NULL;

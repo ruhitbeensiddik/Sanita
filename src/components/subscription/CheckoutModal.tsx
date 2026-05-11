@@ -17,12 +17,13 @@ interface CheckoutModalProps {
 }
 
 const TERMS_TEXT = [
-  'All payments are non-refundable.',
-  'If a user buys a yearly plan and uses the service for some months, no refund will be given for unused months.',
-  'Refunds are only considered if the user can prove data loss caused by the system.',
-  'If eligible data loss is proven, only 50% of the amount paid may be refunded.',
-  'If the lost data is from the last 3 months, no refund will be provided.',
-  'Refunds may only be considered for proven data loss older than 3 months.',
+  'All payments are non-refundable unless otherwise stated below.',
+  'If user data is lost within 3 months of purchase due to a verified system issue on our side, the user may be eligible for a 50% refund. The user must provide valid proof of the data loss for verification.',
+  'Without valid proof, no refund will be provided.',
+  'After 3 months from the purchase date, no refund will be provided for data loss claims.',
+  'If a user purchases a yearly subscription but does not use the service for several months, no refund will be provided for the unused period.',
+  'Refunds are not available for inactivity, non-use, change of mind, or failure to use the service.',
+  'All refund requests are subject to verification and approval.',
   'For any technical issue, the user must allow at least 72 working hours for investigation and resolution before requesting any compensation or refund.',
   'By continuing, the user agrees to these terms.'
 ]
