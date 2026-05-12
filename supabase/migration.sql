@@ -517,9 +517,14 @@ CREATE TABLE IF NOT EXISTS public.payment_requests (
   coupon_code TEXT NULL,
   payment_method TEXT NULL,
   transaction_reference TEXT NULL,
+  sender_info TEXT NULL,
+  payment_date TIMESTAMPTZ NULL,
+  keyword_code TEXT NULL,
   terms_accepted BOOLEAN DEFAULT FALSE,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
   admin_note TEXT NULL,
+  approved_at TIMESTAMPTZ NULL,
+  approved_by UUID NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -588,3 +593,12 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS last_name TEXT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS profiles_email_unique_idx
 ON public.profiles (lower(email))
 WHERE email IS NOT NULL;
+
+-- ==========================================
+-- 21. Add Payment Request Columns (v2)
+-- ==========================================
+ALTER TABLE public.payment_requests ADD COLUMN IF NOT EXISTS sender_info TEXT NULL;
+ALTER TABLE public.payment_requests ADD COLUMN IF NOT EXISTS payment_date TIMESTAMPTZ NULL;
+ALTER TABLE public.payment_requests ADD COLUMN IF NOT EXISTS keyword_code TEXT NULL;
+ALTER TABLE public.payment_requests ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ NULL;
+ALTER TABLE public.payment_requests ADD COLUMN IF NOT EXISTS approved_by UUID NULL;

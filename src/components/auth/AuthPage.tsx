@@ -4,7 +4,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { hasSupabaseConfig } from '../../lib/supabase'
 import { LoginCharacters, type CharacterInteraction } from './LoginCharacters'
-import logoImage from '../../logodudde.png'
+import logoImage from '../../forexdairy-logo.png'
 import toast from 'react-hot-toast'
 import './AuthPage.css'
 
@@ -136,8 +136,7 @@ export function AuthPage() {
           />
         </div>
         <div className="auth-left-branding">
-          <img src={logoImage} alt="Trading Journal" className="auth-left-logo" />
-          <h2>Trading Journal</h2>
+          <img src={logoImage} alt="Forex Dairy" className="auth-left-logo" />
           <p>Track, analyze, and improve your trading performance</p>
         </div>
       </div>

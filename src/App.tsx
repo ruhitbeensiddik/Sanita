@@ -9,7 +9,7 @@ const CalendarView = lazy(() => import('./components/CalendarView').then(m => ({
 const DashboardView = lazy(() => import('./components/DashboardView').then(m => ({ default: m.DashboardView })))
 const GoalsView = lazy(() => import('./components/GoalsView'))
 import { Button } from './components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card'
+import { Card, CardContent, CardHeader } from './components/ui/card'
 import { 
   BarChart3, 
   Calendar, 
@@ -23,7 +23,7 @@ import {
   Menu,
   X
 } from 'lucide-react'
-import logoImage from './logodudde.png'
+import logoImage from './forexdairy-logo.png'
 import { Sidebar } from './components/Sidebar'
 import { useAuthStore } from './store/authStore'
 import { useAccountStore } from './store/accountStore'
@@ -198,9 +198,9 @@ function App() {
         toastOptions={{
           duration: 3000,
           style: {
-            background: isDark ? '#1a2332' : '#ffffff',
-            color: isDark ? '#f0f4f8' : '#1a2332',
-            border: isDark ? '1px solid #2d3f54' : '1px solid #d1dbe6',
+            background: isDark ? '#1a1a1a' : '#ffffff',
+            color: isDark ? '#ededed' : '#1f1f1f',
+            border: isDark ? '1px solid #333' : '1px solid #e0e0e0',
           },
         }}
       />
@@ -217,17 +217,12 @@ function App() {
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div className="space-y-2 w-full lg:w-auto">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4 py-1">
                       <img 
                         src={logoImage} 
-                        alt="Trading Journal Logo" 
-                        className="h-10 sm:h-12 w-auto object-contain"
+                        alt="Forex Dairy" 
+                        className="w-36 sm:w-48 lg:w-56 h-auto object-contain dark:invert"
                       />
-                      <div>
-                        <CardTitle className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
-                          Trading Journal
-                        </CardTitle>
-                      </div>
                     </div>
                     <Button 
                       variant="ghost" 
@@ -364,7 +359,7 @@ function App() {
                 className="fixed inset-y-0 left-0 w-[280px] bg-background border-r shadow-2xl z-50 lg:hidden overflow-y-auto"
               >
                 <div className="flex items-center justify-between p-4 border-b">
-                  <div className="font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
+                  <div className="font-bold text-foreground">
                     Menu
                   </div>
                   <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
@@ -422,11 +417,8 @@ function App() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
               {/* Brand */}
               <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <img src={logoImage} alt="Trading Journal" className="h-8 w-auto object-contain" />
-                  <h3 className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
-                    Trading Journal
-                  </h3>
+                <div className="flex items-center gap-3 w-full">
+                  <img src={logoImage} alt="Forex Dairy" className="w-40 sm:w-48 h-auto object-contain dark:invert" />
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Professional trading performance analytics and journal management platform.
@@ -445,7 +437,7 @@ function App() {
             {/* Copyright */}
             <div className="border-t border-border/30 pt-4">
               <p className="text-center text-xs text-muted-foreground">
-                © {new Date().getFullYear()} Trading Journal. All rights reserved.
+                © {new Date().getFullYear()} Forex Dairy. All rights reserved.
               </p>
             </div>
           </div>

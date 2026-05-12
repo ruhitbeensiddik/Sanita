@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 import { Coupon, UserDiscount, PaymentRequest, SubscriptionSettings } from '../types/auth'
+import { useAuthStore } from './authStore'
 
 interface SubscriptionStore {
   settings: SubscriptionSettings | null
@@ -31,6 +32,10 @@ interface SubscriptionStore {
     finalPrice: number
     couponCode: string | null
     termsAccepted: boolean
+    txid: string
+    senderInfo: string
+    paymentDate: string
+    keywordCode: string
   }) => Promise<boolean>
   approvePaymentRequest: (id: string, days: number) => Promise<void>
   rejectPaymentRequest: (id: string, note: string) => Promise<void>
@@ -82,6 +87,11 @@ function mapPaymentRequestFromSupabase(d: any): PaymentRequest {
     termsAccepted: d.terms_accepted,
     status: d.status,
     adminNote: d.admin_note,
+    approvedAt: d.approved_at,
+    approvedBy: d.approved_by,
+    senderInfo: d.sender_info,
+    paymentDate: d.payment_date,
+    keywordCode: d.keyword_code,
     createdAt: d.created_at,
     updatedAt: d.updated_at,
     userEmail: d.profiles?.email || undefined
@@ -238,6 +248,10 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       discount_percent: req.discountPercent,
       final_price: req.finalPrice,
       coupon_code: req.couponCode,
+      transaction_reference: req.txid,
+      sender_info: req.senderInfo,
+      payment_date: req.paymentDate,
+      keyword_code: req.keywordCode,
       terms_accepted: req.termsAccepted,
       status: 'pending'
     })
@@ -249,7 +263,11 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
     if (!req) return
 
     // Update payment request status
-    await supabase.from('payment_requests').update({ status: 'approved' }).eq('id', id)
+    await supabase.from('payment_requests').update({ 
+      status: 'approved',
+      approved_at: new Date().toISOString(),
+      approved_by: useAuthStore.getState().currentUser?.id
+    }).eq('id', id)
 
     // Calculate expiry based on admin-selected days
     const now = new Date()

@@ -458,7 +458,7 @@ export function TradeFormModal({ isOpen, onClose, editTrade, prefillDate, duplic
                         </div>
                         <div className="trade-form-field sm:col-span-2">
                           <label htmlFor="tf-rr" className="trade-form-label">Risk / Reward Ratio</label>
-                          <input id="tf-rr" type="number" step="any" className="trade-form-input bg-muted/50 cursor-not-allowed" placeholder="Auto-calculated" value={formData.riskReward} readOnly tabIndex={-1} />
+                          <input id="tf-rr" type="text" className="trade-form-input bg-muted/50 cursor-not-allowed font-medium" placeholder="Auto-calculated (e.g. 1:2)" value={formData.riskReward && formData.riskReward !== '0' ? `1:${formData.riskReward}` : ''} readOnly tabIndex={-1} />
                           <p className="text-xs text-muted-foreground mt-1">Auto-calculated from Entry Price, Stop Loss, Take Profit &amp; Direction</p>
                         </div>
                       </div>

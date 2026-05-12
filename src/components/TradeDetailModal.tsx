@@ -115,7 +115,7 @@ export function TradeDetailModal({ trade, isOpen, onClose }: TradeDetailModalPro
                 
                 <div className="p-4 bg-muted/50 rounded-lg border border-border">
                   <div className="text-sm text-muted-foreground mb-1">Risk:Reward</div>
-                  <div className="font-medium">{trade.riskReward ? Number(trade.riskReward).toFixed(2) : '-'}</div>
+                  <div className="font-medium">{trade.riskReward ? `1:${Number(trade.riskReward).toFixed(2)}` : '-'}</div>
                 </div>
 
                 <div className="p-4 bg-muted/50 rounded-lg border border-border">

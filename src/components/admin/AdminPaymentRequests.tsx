@@ -4,7 +4,7 @@ import { useAuthStore } from '../../store/authStore'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
-import { CreditCard, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { CreditCard, CheckCircle, XCircle, Clock, Copy, Info } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 
@@ -80,6 +80,20 @@ export function AdminPaymentRequests() {
             ))}
           </div>
         </div>
+        
+        <div className="mt-4 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg text-xs text-orange-800 dark:text-orange-200">
+          <div className="font-bold flex items-center gap-1 mb-1"><Info className="h-4 w-4" /> Verify manually before approval:</div>
+          <ol className="list-decimal pl-5 space-y-0.5 font-medium">
+            <li>Open BscScan.</li>
+            <li>Search the submitted TxID.</li>
+            <li>Check transaction status is Success.</li>
+            <li>Check token is USDT.</li>
+            <li>Check network is BNB Smart Chain / BEP20.</li>
+            <li>Check receiving address matches: <span className="font-mono bg-orange-500/20 px-1 rounded select-all">0x535998dd21e75be323915290ec37ae72c23da745</span></li>
+            <li>Check amount matches the selected plan.</li>
+            <li>Check transaction time is reasonable.</li>
+          </ol>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
@@ -88,12 +102,9 @@ export function AdminPaymentRequests() {
               <tr>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">User</th>
-                <th className="px-4 py-3">Plan</th>
-                <th className="px-4 py-3">Original</th>
-                <th className="px-4 py-3">Discount</th>
-                <th className="px-4 py-3">Final</th>
-                <th className="px-4 py-3">Coupon</th>
-                <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3">Plan & Price</th>
+                <th className="px-4 py-3">Payment Details</th>
+                <th className="px-4 py-3">Request Date</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -106,11 +117,49 @@ export function AdminPaymentRequests() {
                     </span>
                   </td>
                   <td className="px-4 py-3 font-medium text-foreground text-xs">{req.userEmail || req.userId.slice(0, 8) + '...'}</td>
-                  <td className="px-4 py-3 capitalize font-medium">{req.selectedPlan}</td>
-                  <td className="px-4 py-3">${req.originalPrice}</td>
-                  <td className="px-4 py-3 text-emerald-600">{req.discountPercent}%</td>
-                  <td className="px-4 py-3 font-bold">${req.finalPrice}</td>
-                  <td className="px-4 py-3 font-mono text-xs">{req.couponCode || '-'}</td>
+                  <td className="px-4 py-3">
+                    <div className="space-y-0.5">
+                      <div className="capitalize font-bold text-sm">{req.selectedPlan}</div>
+                      <div className="font-bold text-emerald-600">${req.finalPrice}</div>
+                      {req.couponCode && <div className="text-[10px] text-muted-foreground font-mono">Coupon: {req.couponCode}</div>}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium text-muted-foreground">TxID:</span>
+                        {req.transactionReference ? (
+                          <>
+                            <span className="font-mono bg-muted/50 px-1 rounded truncate max-w-[120px]">{req.transactionReference}</span>
+                            <button onClick={() => { navigator.clipboard.writeText(req.transactionReference || ''); toast.success('TxID Copied!') }} className="text-emerald-500 hover:text-emerald-600 p-0.5"><Copy className="h-3 w-3" /></button>
+                          </>
+                        ) : (
+                          <span className="italic text-muted-foreground">None</span>
+                        )}
+                      </div>
+                      
+                      {req.senderInfo && (
+                        <div className="flex items-center gap-1">
+                          <span className="font-medium text-muted-foreground">Sender:</span>
+                          <span className="truncate max-w-[150px]">{req.senderInfo}</span>
+                        </div>
+                      )}
+                      
+                      {req.paymentDate && (
+                        <div className="flex items-center gap-1">
+                          <span className="font-medium text-muted-foreground">Paid:</span>
+                          <span>{new Date(req.paymentDate).toLocaleString()}</span>
+                        </div>
+                      )}
+                      
+                      {req.keywordCode && (
+                        <div className="flex items-center gap-1">
+                          <span className="font-medium text-muted-foreground">Code:</span>
+                          <span className="font-mono bg-muted/50 px-1 rounded">{req.keywordCode}</span>
+                        </div>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(req.createdAt).toLocaleDateString()}</td>
                   <td className="px-4 py-3 text-right">
                     {req.status === 'pending' ? (
@@ -167,7 +216,7 @@ export function AdminPaymentRequests() {
                 </tr>
               ))}
               {filtered.length === 0 && (
-                <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">No payment requests found.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No payment requests found.</td></tr>
               )}
             </tbody>
           </table>

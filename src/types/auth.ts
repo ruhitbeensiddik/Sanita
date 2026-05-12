@@ -61,9 +61,14 @@ export interface PaymentRequest {
   couponCode: string | null
   paymentMethod: string | null
   transactionReference: string | null
+  senderInfo: string | null
+  paymentDate: string | null
+  keywordCode: string | null
   termsAccepted: boolean
   status: 'pending' | 'approved' | 'rejected'
   adminNote: string | null
+  approvedAt: string | null
+  approvedBy: string | null
   createdAt: string
   updatedAt: string
   // Joined field (for admin display)

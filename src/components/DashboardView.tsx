@@ -249,7 +249,7 @@ export function DashboardView() {
         transition={{ duration: 0.6 }}
         className="text-center space-y-4"
       >
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold text-foreground">
           Trading Dashboard
         </h1>
         <p className="text-xl text-muted-foreground">
@@ -569,23 +569,23 @@ export function DashboardView() {
               <h3 className="text-xl font-semibold mb-6 text-center">Profitability Checklist</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
                 <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800/30">
-                  <span className="mt-1 h-3 w-3 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                  <span className="mt-1 h-3 w-3 rounded-full bg-primary flex-shrink-0"></span>
                   <span className="text-sm text-left">Followed a written plan before entering each trade</span>
                 </div>
                 <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800/30">
-                  <span className="mt-1 h-3 w-3 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                  <span className="mt-1 h-3 w-3 rounded-full bg-primary flex-shrink-0"></span>
                   <span className="text-sm text-left">Risk per trade ≤ 1% and documented R:R</span>
                 </div>
                 <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800/30">
-                  <span className="mt-1 h-3 w-3 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                  <span className="mt-1 h-3 w-3 rounded-full bg-primary flex-shrink-0"></span>
                   <span className="text-sm text-left">Took only A+ setups during your active session</span>
                 </div>
                 <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800/30">
-                  <span className="mt-1 h-3 w-3 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                  <span className="mt-1 h-3 w-3 rounded-full bg-primary flex-shrink-0"></span>
                   <span className="text-sm text-left">Logged emotions and lesson per trade</span>
                 </div>
                 <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800/30">
-                  <span className="mt-1 h-3 w-3 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                  <span className="mt-1 h-3 w-3 rounded-full bg-primary flex-shrink-0"></span>
                   <span className="text-sm text-left">Stopped trading after daily max loss hit</span>
                 </div>
               </div>

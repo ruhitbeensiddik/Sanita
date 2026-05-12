@@ -1,8 +1,8 @@
 import React from 'react'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
-import { PieChart, BarChart3, Calendar, Target, Zap } from 'lucide-react'
-
+import { PieChart, BarChart3, Calendar, Target } from 'lucide-react'
+import logoImage from '../forexdairy-logo.png'
 type TabId = 'dashboard' | 'table' | 'calendar' | 'goals' | 'admin'
 
 interface SidebarProps {
@@ -12,10 +12,10 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS: Array<{ id: TabId; label: string; icon: React.ComponentType<any>; description: string; color: string }> = [
-  { id: 'dashboard', label: 'Dashboard', icon: PieChart, description: 'Overview & Analytics', color: 'text-emerald-600' },
-  { id: 'table', label: 'Trades', icon: BarChart3, description: 'Trade Management', color: 'text-green-600' },
-  { id: 'calendar', label: 'Calendar', icon: Calendar, description: 'Daily View', color: 'text-teal-600' },
-  { id: 'goals', label: 'Goals', icon: Target, description: 'Financial Goals', color: 'text-yellow-600' },
+  { id: 'dashboard', label: 'Dashboard', icon: PieChart, description: 'Overview & Analytics', color: 'text-foreground' },
+  { id: 'table', label: 'Trades', icon: BarChart3, description: 'Trade Management', color: 'text-foreground' },
+  { id: 'calendar', label: 'Calendar', icon: Calendar, description: 'Daily View', color: 'text-foreground' },
+  { id: 'goals', label: 'Goals', icon: Target, description: 'Financial Goals', color: 'text-foreground' },
 ]
 
 import { ShieldAlert } from 'lucide-react'
@@ -28,24 +28,23 @@ export function Sidebar({ activeTab, onChange, className = "hidden lg:block w-64
   
   if (currentUser?.role === 'super_admin') {
     // Super Admin only sees management
-    navItems = [{ id: 'admin', label: 'Admin', icon: ShieldAlert, description: 'System Management', color: 'text-indigo-600' }]
+    navItems = [{ id: 'admin', label: 'Admin', icon: ShieldAlert, description: 'System Management', color: 'text-foreground' }]
   } else {
     navItems = [...NAV_ITEMS]
     if (currentUser?.role === 'admin') {
-      navItems.push({ id: 'admin', label: 'Admin', icon: ShieldAlert, description: 'System Management', color: 'text-indigo-600' } as any)
+      navItems.push({ id: 'admin', label: 'Admin', icon: ShieldAlert, description: 'System Management', color: 'text-foreground' } as any)
     }
   }
 
   return (
     <aside aria-label="Primary" className={className}>
       <Card className="border-0 shadow-xl p-4 sticky top-4 bg-gradient-to-br from-card to-card/80 backdrop-blur-sm">
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 mb-3">
-            <Zap className="h-6 w-6 text-white" />
-          </div>
-          <h2 className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
-            Trading Journal
-          </h2>
+        <div className="text-center mb-4">
+          <img 
+            src={logoImage} 
+            alt="Forex Dairy" 
+            className="w-40 sm:w-48 h-auto object-contain mx-auto dark:invert"
+          />
         </div>
         
         <nav className="flex flex-col gap-2" aria-label="Main navigation">
@@ -58,8 +57,8 @@ export function Sidebar({ activeTab, onChange, className = "hidden lg:block w-64
                 variant={isActive ? 'default' : 'ghost'}
                 className={`justify-start h-auto py-4 px-4 rounded-xl transition-all duration-300 ${
                   isActive 
-                    ? 'shadow-lg bg-gradient-to-r from-primary to-primary/80 text-primary-foreground scale-105' 
-                    : 'hover:bg-muted hover:scale-102 hover:shadow-md'
+                    ? 'bg-primary text-primary-foreground shadow-md ring-1 ring-primary/20' 
+                    : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground'
                 }`}
                 onClick={() => onChange(item.id)}
                 aria-current={isActive ? 'page' : undefined}
@@ -81,20 +80,7 @@ export function Sidebar({ activeTab, onChange, className = "hidden lg:block w-64
           })}
         </nav>
 
-        {/* Quick Stats */}
-        <div className="mt-8 p-4 bg-muted/50 rounded-xl">
-          <h3 className="text-sm font-semibold text-center mb-3 text-muted-foreground">
-            Quick Stats
-          </h3>
-          <div className="space-y-2 text-center">
-            <div className="text-xs text-muted-foreground">
-              <span className="font-medium">Active:</span> {activeTab}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              <span className="font-medium">Version:</span> 2.0
-            </div>
-          </div>
-        </div>
+
       </Card>
     </aside>
   )

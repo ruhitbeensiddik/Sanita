@@ -134,7 +134,7 @@ export function CalendarView() {
     <div className="space-y-8 max-w-7xl mx-auto px-4" ref={monthlyPanelRef}>
       {/* Header Section */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center space-y-4">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold text-foreground">
           Trading Calendar
         </h1>
         <p className="text-xl text-muted-foreground">
@@ -178,7 +178,7 @@ export function CalendarView() {
         <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
           <CardHeader className="text-center">
             <CardTitle className="flex items-center justify-center gap-2">
-              <CalendarIcon className="h-6 w-6 text-emerald-600" />
+              <CalendarIcon className="h-6 w-6 text-foreground" />
               Monthly Overview
             </CardTitle>
           </CardHeader>

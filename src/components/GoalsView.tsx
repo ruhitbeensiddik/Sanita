@@ -232,8 +232,8 @@ export function GoalsView({ adminOverrideAccountId, adminOverrideUserId, hideCon
       {/* Header aligned with Emerald Theme */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card p-6 rounded-xl border border-border shadow-sm">
         <div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent flex items-center gap-2">
-            <Target className="h-8 w-8 text-emerald-500" />
+          <h2 className="text-3xl font-bold text-foreground flex items-center gap-2">
+            <Target className="h-8 w-8 text-foreground" />
             Financial Goals
           </h2>
           <p className="text-muted-foreground mt-1 text-sm">
@@ -246,14 +246,14 @@ export function GoalsView({ adminOverrideAccountId, adminOverrideUserId, hideCon
             <Button 
               variant="outline" 
               onClick={() => setShowArchivedGoals(!showArchivedGoals)}
-              className="flex items-center gap-2 border-emerald-500/20 text-emerald-600 hover:bg-emerald-500/10"
+              className="flex items-center gap-2 border-primary/20 text-foreground hover:bg-primary/10"
             >
               <Archive className="h-4 w-4" />
               {showArchivedGoals ? 'Hide Archived' : 'Show Archived'}
             </Button>
             <Button 
               onClick={() => setShowAddGoal(true)}
-              className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md"
+              className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md"
             >
               <Plus className="h-4 w-4" /> Add Goal
             </Button>
@@ -272,16 +272,16 @@ export function GoalsView({ adminOverrideAccountId, adminOverrideUserId, hideCon
           </CardContent>
         </Card>
         
-        <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 border-emerald-500/20 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 border-primary/20 shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4 flex flex-col justify-center items-center text-center h-full relative overflow-hidden">
             <div className="absolute -right-4 -top-4 opacity-10">
               <DollarSign className="w-24 h-24" />
             </div>
-            <div className="text-sm font-medium text-emerald-800 dark:text-emerald-300 mb-1 z-10">Current Funded</div>
-            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 z-10 flex items-center gap-1">
+            <div className="text-sm font-medium text-foreground/80 mb-1 z-10">Current Funded</div>
+            <div className="text-2xl font-bold text-foreground z-10 flex items-center gap-1">
               ${goalSummary.totalCurrentAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               {goalSummary.totalCurrentAmount > 0 && (
-                <TrendingUp className="h-4 w-4 text-emerald-500 inline ml-1" />
+                <TrendingUp className="h-4 w-4 text-foreground/70 inline ml-1" />
               )}
             </div>
           </CardContent>
@@ -329,7 +329,7 @@ export function GoalsView({ adminOverrideAccountId, adminOverrideUserId, hideCon
                         className="pl-8"
                       />
                     </div>
-                    <Button onClick={handleManualAllocation} disabled={manualAllocationAmount <= 0} className="bg-emerald-600 hover:bg-emerald-700">
+                    <Button onClick={handleManualAllocation} disabled={manualAllocationAmount <= 0} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                       Allocate
                     </Button>
                   </div>
@@ -943,7 +943,7 @@ function GoalDetailView({
               </div>
               <div className="flex items-center gap-2">
                 {goal.status === 'Completed' ? (
-                  <span className="px-2 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-1">
+                  <span className="px-2 py-1 bg-primary/10 text-foreground rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-1">
                     <CheckCircle className="w-3 h-3" /> Completed
                   </span>
                 ) : goal.status === 'Paused' ? (
@@ -969,7 +969,7 @@ function GoalDetailView({
               </div>
                 <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
                   <div 
-                    className={`h-2.5 rounded-full transition-all duration-[1s] ease-out ${progress >= 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-emerald-500 to-teal-400'}`}
+                    className={`h-2.5 rounded-full transition-all duration-[1s] ease-out ${progress >= 100 ? 'bg-primary' : 'bg-primary/80'}`}
                     style={{ width: `${Math.min(progress, 100)}%` }}
                   ></div>
                 </div>

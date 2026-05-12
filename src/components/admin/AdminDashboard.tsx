@@ -1,20 +1,20 @@
 import { useAuthStore, isDefaultSuperAdmin, getUserStatus } from '../../store/authStore'
 import { useAccountStore } from '../../store/accountStore'
 import { useTradeStore } from '../../store/tradeStore'
-import { Users, Monitor, BarChart3, ShieldAlert, Trash2, Eye, Shield, Clock, CheckCircle, XCircle, CreditCard, Ticket, DollarSign, AlertTriangle } from 'lucide-react'
+import { Users, Monitor, BarChart3, ShieldAlert, Trash2, Eye, Shield, Clock, CheckCircle, XCircle, CreditCard, Ticket, DollarSign } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card'
 import { Button } from '../ui/button'
 import toast from 'react-hot-toast'
 import { useState, useEffect, Suspense, lazy } from 'react'
 import { AdminUserDetail } from './AdminUserDetail'
 
-const AdminDeletedTrades = lazy(() => import('./AdminDeletedTrades').then(m => ({ default: m.AdminDeletedTrades })))
+
 const AdminSubscriptionSettings = lazy(() => import('./AdminSubscriptionSettings').then(m => ({ default: m.AdminSubscriptionSettings })))
 const AdminCoupons = lazy(() => import('./AdminCoupons').then(m => ({ default: m.AdminCoupons })))
 const AdminUserDiscounts = lazy(() => import('./AdminUserDiscounts').then(m => ({ default: m.AdminUserDiscounts })))
 const AdminPaymentRequests = lazy(() => import('./AdminPaymentRequests').then(m => ({ default: m.AdminPaymentRequests })))
 
-type AdminTab = 'users' | 'deleted-trades' | 'subscriptions' | 'coupons' | 'user-discounts' | 'payment-requests'
+type AdminTab = 'users' | 'subscriptions' | 'coupons' | 'user-discounts' | 'payment-requests'
 
 export function AdminDashboard() {
   const { currentUser, users, updateUserRole, deleteUser, subscribeToAllUsers, approveUser, rejectUser } = useAuthStore()
@@ -103,7 +103,6 @@ export function AdminDashboard() {
 
   const adminTabs: { id: AdminTab; label: string; icon: any }[] = isSuperAdmin ? [
     { id: 'users', label: 'Users', icon: Users },
-    { id: 'deleted-trades', label: 'Deleted Trades', icon: AlertTriangle },
     { id: 'subscriptions', label: 'Pricing', icon: DollarSign },
     { id: 'coupons', label: 'Coupons', icon: Ticket },
     { id: 'user-discounts', label: 'Discounts', icon: Users },
@@ -316,7 +315,6 @@ export function AdminDashboard() {
 
       {/* Other Admin Tabs */}
       <Suspense fallback={<div className="p-6 text-muted-foreground text-center">Loading...</div>}>
-        {activeAdminTab === 'deleted-trades' && <AdminDeletedTrades />}
         {activeAdminTab === 'subscriptions' && <AdminSubscriptionSettings />}
         {activeAdminTab === 'coupons' && <AdminCoupons />}
         {activeAdminTab === 'user-discounts' && <AdminUserDiscounts />}
