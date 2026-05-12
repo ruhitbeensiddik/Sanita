@@ -229,7 +229,7 @@ export function GoalsView({ adminOverrideAccountId, adminOverrideUserId, hideCon
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-20">
-      {/* Header aligned with Emerald Theme */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card p-6 rounded-xl border border-border shadow-sm">
         <div>
           <h2 className="text-3xl font-bold text-foreground flex items-center gap-2">
@@ -1079,7 +1079,7 @@ function GoalDetailView({
                   <YAxis />
                   <Tooltip 
                     content={<ChartTooltip formatterType="currency" customLabel="Data Point" />}
-                    cursor={{ stroke: 'var(--tw-colors-emerald-500)', strokeWidth: 1, strokeDasharray: '3 3' }}
+                    cursor={{ stroke: '#9ca3af', strokeWidth: 1, strokeDasharray: '3 3' }}
                   />
                   <Line 
                     type="monotone" 

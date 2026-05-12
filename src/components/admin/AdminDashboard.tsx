@@ -215,7 +215,7 @@ export function AdminDashboard() {
                           <td className="px-4 py-4 text-muted-foreground">{new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                           <td className="px-4 py-4 text-right">
                             <div className="flex items-center justify-end gap-2">
-                              <Button size="sm" variant="outline" onClick={() => handleApprove(user.id)} className="h-8 text-xs border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10"><CheckCircle className="h-3 w-3 mr-1" /> Approve</Button>
+                                  <Button size="sm" variant="outline" onClick={() => handleApprove(user.id)} className="h-8 text-xs border-border text-foreground hover:bg-muted"><CheckCircle className="h-3 w-3 mr-1" /> Approve</Button>
                               <Button size="sm" variant="outline" onClick={() => handleReject(user.id)} className="h-8 text-xs border-destructive/30 text-destructive hover:bg-destructive/10"><XCircle className="h-3 w-3 mr-1" /> Reject</Button>
                             </div>
                           </td>

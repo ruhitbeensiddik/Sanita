@@ -89,7 +89,7 @@ export function AdminUserDetail({ user, onBack }: AdminUserDetailProps) {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-2xl flex items-center gap-2">
-                <UserIcon className="h-6 w-6 text-emerald-500" />
+                <UserIcon className="h-6 w-6 text-foreground" />
                 {fullName || user.email}
               </CardTitle>
               <CardDescription className="mt-1 flex items-center gap-4 flex-wrap">
@@ -126,7 +126,7 @@ export function AdminUserDetail({ user, onBack }: AdminUserDetailProps) {
             <div>
               <div className="text-xs text-muted-foreground mb-1">Status</div>
               <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                effectiveStatus === 'active' ? 'bg-emerald-500/10 text-emerald-500' :
+                effectiveStatus === 'active' ? 'bg-green-500/10 text-green-600' :
                 effectiveStatus === 'paused' ? 'bg-orange-500/10 text-orange-500' :
                 effectiveStatus === 'expired' ? 'bg-red-500/10 text-red-500' :
                 'bg-slate-500/10 text-slate-500'
@@ -152,7 +152,7 @@ export function AdminUserDetail({ user, onBack }: AdminUserDetailProps) {
             </div>
             <div>
               <div className="text-xs text-muted-foreground mb-1">Remaining</div>
-              <div className={`text-sm font-bold ${remainingDays > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+              <div className={`text-sm font-bold ${remainingDays > 0 ? 'text-green-600' : 'text-red-500'}`}>
                 {remainingDays} days
               </div>
             </div>
@@ -164,7 +164,7 @@ export function AdminUserDetail({ user, onBack }: AdminUserDetailProps) {
           <div className="flex gap-2">
             {user.subscriptionPaused ? (
               <Button size="sm" onClick={handleResume} disabled={pausing}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                className="bg-primary text-primary-foreground hover:bg-primary/90">
                 <PlayCircle className="h-4 w-4 mr-1" /> {pausing ? 'Resuming...' : 'Resume User'}
               </Button>
             ) : (
@@ -191,7 +191,7 @@ export function AdminUserDetail({ user, onBack }: AdminUserDetailProps) {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Monitor className="h-5 w-5 text-emerald-500" />
+                <Monitor className="h-5 w-5 text-foreground" />
                 Inspect Account Journals
               </CardTitle>
               <CardDescription>
@@ -205,7 +205,7 @@ export function AdminUserDetail({ user, onBack }: AdminUserDetailProps) {
                     key={acc.id}
                     variant={selectedAccountId === acc.id ? 'default' : 'outline'}
                     onClick={() => setSelectedAccountId(acc.id)}
-                    className={selectedAccountId === acc.id ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}
+                    className={selectedAccountId === acc.id ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''}
                   >
                     {acc.name} {acc.isDefault && '(Default)'}
                   </Button>
@@ -219,19 +219,19 @@ export function AdminUserDetail({ user, onBack }: AdminUserDetailProps) {
               <div className="flex border-b border-border overflow-x-auto">
                 <button
                   onClick={() => setActiveTab('insights')}
-                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'insights' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'insights' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                 >
                   Insights & Analytics
                 </button>
                 <button
                   onClick={() => setActiveTab('trades')}
-                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'trades' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'trades' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                 >
                   Trade History
                 </button>
                 <button
                   onClick={() => setActiveTab('goals')}
-                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'goals' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'goals' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                 >
                   Financial Goals
                 </button>

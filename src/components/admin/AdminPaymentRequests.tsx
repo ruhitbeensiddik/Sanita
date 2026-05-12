@@ -50,13 +50,13 @@ export function AdminPaymentRequests() {
   }
 
   const statusIcon = (status: string) => {
-    if (status === 'approved') return <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+    if (status === 'approved') return <CheckCircle className="h-3.5 w-3.5 text-green-600" />
     if (status === 'rejected') return <XCircle className="h-3.5 w-3.5 text-red-500" />
     return <Clock className="h-3.5 w-3.5 text-amber-500" />
   }
 
   const statusColor = (status: string) => {
-    if (status === 'approved') return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+    if (status === 'approved') return 'bg-green-500/10 text-green-600 border-green-500/20'
     if (status === 'rejected') return 'bg-red-500/10 text-red-500 border-red-500/20'
     return 'bg-amber-500/10 text-amber-500 border-amber-500/20'
   }
@@ -74,7 +74,7 @@ export function AdminPaymentRequests() {
           <div className="flex gap-1">
             {(['all', 'pending', 'approved', 'rejected'] as const).map(f => (
               <Button key={f} size="sm" variant={filter === f ? 'default' : 'outline'} onClick={() => setFilter(f)}
-                className={`text-xs ${filter === f ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}>
+                className={`text-xs ${filter === f ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''}`}>
                 {f.charAt(0).toUpperCase() + f.slice(1)}
               </Button>
             ))}
@@ -84,12 +84,14 @@ export function AdminPaymentRequests() {
         <div className="mt-4 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg text-xs text-orange-800 dark:text-orange-200">
           <div className="font-bold flex items-center gap-1 mb-1"><Info className="h-4 w-4" /> Verify manually before approval:</div>
           <ol className="list-decimal pl-5 space-y-0.5 font-medium">
-            <li>Open BscScan.</li>
+            <li>Check which network the user selected (BSC / BEP20 or Tron / TRC20).</li>
+            <li>Open the appropriate explorer (BscScan for BSC, Tronscan for TRC20).</li>
             <li>Search the submitted TxID.</li>
             <li>Check transaction status is Success.</li>
             <li>Check token is USDT.</li>
-            <li>Check network is BNB Smart Chain / BEP20.</li>
-            <li>Check receiving address matches: <span className="font-mono bg-orange-500/20 px-1 rounded select-all">0x535998dd21e75be323915290ec37ae72c23da745</span></li>
+            <li>Check the network matches the user's selected payment network.</li>
+            <li>BSC address: <span className="font-mono bg-orange-500/20 px-1 rounded select-all">0x535998dd21e75be323915290ec37ae72c23da745</span></li>
+            <li>TRC20 address: <span className="font-mono bg-orange-500/20 px-1 rounded select-all">TJSDKvpQ4hFev1VqSA2g84RBSPW1HkeqmA</span></li>
             <li>Check amount matches the selected plan.</li>
             <li>Check transaction time is reasonable.</li>
           </ol>
@@ -120,18 +122,24 @@ export function AdminPaymentRequests() {
                   <td className="px-4 py-3">
                     <div className="space-y-0.5">
                       <div className="capitalize font-bold text-sm">{req.selectedPlan}</div>
-                      <div className="font-bold text-emerald-600">${req.finalPrice}</div>
+                      <div className="font-bold text-foreground">${req.finalPrice}</div>
                       {req.couponCode && <div className="text-[10px] text-muted-foreground font-mono">Coupon: {req.couponCode}</div>}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-xs">
                     <div className="space-y-1">
+                      {req.paymentMethod && (
+                        <div className="flex items-center gap-1">
+                          <span className="font-medium text-muted-foreground">Network:</span>
+                          <span className="font-semibold bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px]">{req.paymentMethod}</span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-1">
                         <span className="font-medium text-muted-foreground">TxID:</span>
                         {req.transactionReference ? (
                           <>
                             <span className="font-mono bg-muted/50 px-1 rounded truncate max-w-[120px]">{req.transactionReference}</span>
-                            <button onClick={() => { navigator.clipboard.writeText(req.transactionReference || ''); toast.success('TxID Copied!') }} className="text-emerald-500 hover:text-emerald-600 p-0.5"><Copy className="h-3 w-3" /></button>
+                            <button onClick={() => { navigator.clipboard.writeText(req.transactionReference || ''); toast.success('TxID Copied!') }} className="text-foreground hover:text-foreground/80 p-0.5"><Copy className="h-3 w-3" /></button>
                           </>
                         ) : (
                           <span className="italic text-muted-foreground">None</span>
@@ -151,13 +159,6 @@ export function AdminPaymentRequests() {
                           <span>{new Date(req.paymentDate).toLocaleString()}</span>
                         </div>
                       )}
-                      
-                      {req.keywordCode && (
-                        <div className="flex items-center gap-1">
-                          <span className="font-medium text-muted-foreground">Code:</span>
-                          <span className="font-mono bg-muted/50 px-1 rounded">{req.keywordCode}</span>
-                        </div>
-                      )}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(req.createdAt).toLocaleDateString()}</td>
@@ -172,7 +173,7 @@ export function AdminPaymentRequests() {
                               onClick={() => { setDurations(p => ({ ...p, [req.id]: opt.value })); setCustomDays(p => ({ ...p, [req.id]: '' })) }}
                               className={`px-2 py-1 rounded text-[10px] font-medium border transition-colors ${
                                 getDays(req.id) === opt.value && !customDays[req.id]
-                                  ? 'bg-emerald-600 text-white border-emerald-600'
+                                  ? 'bg-primary text-primary-foreground border-primary'
                                   : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted'
                               }`}
                             >
@@ -198,7 +199,7 @@ export function AdminPaymentRequests() {
                         <div className="flex items-center gap-1">
                           <span className="text-[10px] text-muted-foreground mr-1">{getDays(req.id)}d</span>
                           <Button size="sm" variant="outline" onClick={() => handleApprove(req.id)}
-                            className="h-7 text-xs border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10">
+                            className="h-7 text-xs border-border text-foreground hover:bg-muted">
                             <CheckCircle className="h-3 w-3 mr-1" /> Approve
                           </Button>
                           <Button size="sm" variant="outline" onClick={() => { setRejectingId(req.id); setRejectNote('') }}

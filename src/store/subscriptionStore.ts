@@ -35,7 +35,7 @@ interface SubscriptionStore {
     txid: string
     senderInfo: string
     paymentDate: string
-    keywordCode: string
+    paymentNetwork: string
   }) => Promise<boolean>
   approvePaymentRequest: (id: string, days: number) => Promise<void>
   rejectPaymentRequest: (id: string, note: string) => Promise<void>
@@ -251,7 +251,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       transaction_reference: req.txid,
       sender_info: req.senderInfo,
       payment_date: req.paymentDate,
-      keyword_code: req.keywordCode,
+      payment_method: req.paymentNetwork,
       terms_accepted: req.termsAccepted,
       status: 'pending'
     })

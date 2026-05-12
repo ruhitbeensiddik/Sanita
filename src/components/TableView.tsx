@@ -37,8 +37,6 @@ import {
   Edit3,
   Eye,
   EyeOff,
-  FileText,
-  Image as ImageIcon
 } from 'lucide-react'
 import { ExportModal } from './ExportModal'
 import { TradingInsights } from './TradingInsights'
@@ -536,15 +534,11 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
 
                     <SortableHeader field="pair">Pair</SortableHeader>
                     <SortableHeader field="date">Date</SortableHeader>
-                    <TableHead>Time</TableHead>
                     <TableHead>Direction</TableHead>
                     <SortableHeader field="profitLoss">P&L</SortableHeader>
                     <TableHead>Result</TableHead>
                     <SortableHeader field="riskReward">R:R</SortableHeader>
-                    <TableHead>Account</TableHead>
-                    <TableHead>Emotions</TableHead>
-                    <TableHead>Info</TableHead>
-                    {!hideControls && <TableHead className="w-28">Actions</TableHead>}
+                    {!hideControls && <TableHead className="w-24 sticky right-0 bg-card z-10 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -571,12 +565,9 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
                           <EditableCell trade={trade} field="date" type="date" />
                         </TableCell>
                         <TableCell>
-                          <EditableCell trade={trade} field="time" type="time" placeholder="HH:mm" />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {trade.direction === 'Long' && <TrendingUp className="h-4 w-4 text-green-600" />}
-                            {trade.direction === 'Short' && <TrendingDown className="h-4 w-4 text-red-600" />}
+                          <div className="flex items-center gap-1">
+                            {trade.direction === 'Long' && <TrendingUp className="h-4 w-4 text-green-600 shrink-0" />}
+                            {trade.direction === 'Short' && <TrendingDown className="h-4 w-4 text-red-600 shrink-0" />}
                             <EditableCell 
                               trade={trade} 
                               field="direction" 
@@ -601,34 +592,8 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
                         <TableCell>
                           <EditableCell trade={trade} field="riskReward" type="number" />
                         </TableCell>
-                        <TableCell>
-                          <EditableCell 
-                            trade={trade} 
-                            field="account" 
-                            type="select"
-                            options={['Funded', 'Demo', 'Personal']}
-                          />
-                        </TableCell>
-                        <TableCell className="max-w-xs">
-                          <EditableCell trade={trade} field="emotions" />
-                        </TableCell>
-                        {/* Info indicators column */}
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            {trade.tradeAnalysis && (
-                              <span title="Has trade analysis" className="text-purple-500">
-                                <FileText className="h-3.5 w-3.5" />
-                              </span>
-                            )}
-                            {(trade.analysisImage || trade.resultImage) && (
-                              <span title="Has images" className="text-blue-500">
-                                <ImageIcon className="h-3.5 w-3.5" />
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
                         {!hideControls && (
-                          <TableCell>
+                          <TableCell className="sticky right-0 bg-card z-10 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]">
                             <div className="flex items-center gap-1">
                               <Button
                                 variant="ghost"
@@ -648,7 +613,6 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
                               >
                                 <Copy className="h-4 w-4" />
                               </Button>
-
                             </div>
                           </TableCell>
                         )}
@@ -658,7 +622,7 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
                   
                   {filteredTrades.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={12} className="text-center text-muted-foreground py-12">
+                      <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
                         <div className="space-y-2">
                           <p className="text-lg">No trades found</p>
                           <p className="text-sm">

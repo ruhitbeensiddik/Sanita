@@ -58,13 +58,13 @@ export function AdminUserDiscounts() {
                   <tr key={user.id} className="hover:bg-muted/30">
                     <td className="px-4 py-3 font-medium text-foreground">{user.email}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${user.role === 'admin' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-500/10 text-slate-500'}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${user.role === 'admin' ? 'bg-primary/10 text-foreground' : 'bg-slate-500/10 text-slate-500'}`}>
                         {user.role.toUpperCase()}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        user.subscriptionStatus === 'active' ? 'bg-emerald-500/10 text-emerald-500' :
+                        user.subscriptionStatus === 'active' ? 'bg-green-500/10 text-green-600' :
                         user.subscriptionStatus === 'expired' ? 'bg-red-500/10 text-red-500' :
                         'bg-slate-500/10 text-slate-500'
                       }`}>{(user.subscriptionStatus || 'free').toUpperCase()}</span>
@@ -74,14 +74,14 @@ export function AdminUserDiscounts() {
                         <Input type="number" min="0" max="100" className="h-8 w-24" value={editValue} onChange={e => setEditValue(e.target.value)}
                           onKeyDown={e => { if (e.key === 'Enter') handleSave(user.id); if (e.key === 'Escape') setEditingUser(null) }} autoFocus />
                       ) : (
-                        <span className={`font-medium ${disc > 0 ? 'text-emerald-600' : 'text-muted-foreground'}`}>{disc}%</span>
+                        <span className={`font-medium ${disc > 0 ? 'text-foreground' : 'text-muted-foreground'}`}>{disc}%</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
                       {isEditing ? (
                         <div className="flex items-center justify-end gap-1">
                           <Button size="sm" variant="outline" onClick={() => setEditingUser(null)} className="h-7 text-xs">Cancel</Button>
-                          <Button size="sm" onClick={() => handleSave(user.id)} className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700">
+                          <Button size="sm" onClick={() => handleSave(user.id)} className="h-7 text-xs bg-primary text-primary-foreground hover:bg-primary/90">
                             <Save className="h-3 w-3 mr-1" /> Save
                           </Button>
                         </div>

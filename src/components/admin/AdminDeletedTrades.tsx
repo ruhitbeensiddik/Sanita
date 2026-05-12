@@ -174,7 +174,7 @@ export function AdminDeletedTrades() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleRestore(trade.id)}
-                          className="h-7 text-xs border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10"
+                          className="h-7 text-xs border-border text-foreground hover:bg-muted"
                         >
                           <RotateCcw className="h-3 w-3 mr-1" /> Restore
                         </Button>

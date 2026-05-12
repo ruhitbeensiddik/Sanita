@@ -60,11 +60,11 @@ export function AdminNoticeEditor({ userId, currentNotice }: AdminNoticeEditorPr
           value={notice}
           onChange={(e) => setNotice(e.target.value)}
           placeholder="Write a notice for this user... (They will see this on their dashboard)"
-          className="w-full min-h-[100px] p-3 rounded-lg border border-border bg-background text-foreground text-sm resize-y focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+          className="w-full min-h-[100px] p-3 rounded-lg border border-border bg-background text-foreground text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring/40"
         />
         <div className="flex items-center gap-2">
           <Button size="sm" onClick={handleSave} disabled={saving}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white">
+            className="bg-primary text-primary-foreground hover:bg-primary/90">
             <Save className="h-3 w-3 mr-1" /> {saving ? 'Saving...' : 'Save Notice'}
           </Button>
           {(notice || currentNotice) && (

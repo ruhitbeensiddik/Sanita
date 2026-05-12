@@ -22,6 +22,17 @@ function formatCurrency(amount: number): string {
   }).format(amount)
 }
 
+const IMAGE_BASE_URL = 'https://imageapi.forexdairy.com'
+
+function normalizeImageUrl(url: string): string {
+  if (!url) return ''
+  if (url.startsWith(IMAGE_BASE_URL)) return url
+  const uploadsIndex = url.indexOf('/uploads/')
+  if (uploadsIndex !== -1) return `${IMAGE_BASE_URL}${url.slice(uploadsIndex)}`
+  if (url.startsWith('/uploads/')) return `${IMAGE_BASE_URL}${url}`
+  return url
+}
+
 function generateReportDOM(data: ExportPDFData): HTMLElement {
   const container = document.createElement('div')
   // We use standard web fonts and highly specific coloring to match the premium dark theme, but adapted slightly for print clarity if needed (though the user wants a beautiful, similar visual feel, so we'll stick to deep nice colors)
@@ -36,7 +47,7 @@ function generateReportDOM(data: ExportPDFData): HTMLElement {
   
   // 1. Header (Cover-like)
   const headerHtml = `
-    <div style="padding: 40px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; border-bottom: 4px solid #10b981;">
+    <div style="padding: 40px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; border-bottom: 4px solid #1f1f1f;">
       <h1 style="margin: 0; font-size: 36px; font-weight: 800; letter-spacing: -0.02em;">${data.title}</h1>
       <p style="margin: 8px 0 0 0; font-size: 18px; color: #94a3b8; font-weight: 500;">${data.subtitle || ''}</p>
       <div style="margin-top: 24px; display: inline-block; padding: 6px 12px; background: rgba(255,255,255,0.1); border-radius: 6px; font-size: 12px; color: #cbd5e1;">
@@ -170,7 +181,16 @@ function generateReportDOM(data: ExportPDFData): HTMLElement {
           tradesHtml += `<div>
             <div style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">Analysis Images</div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              ${trade.analysisImages.map(img => `<img src="${img}" style="width: 100%; max-height: 200px; object-fit: contain; background: #0f172a; border-radius: 8px;" />`).join('')}
+              ${trade.analysisImages.map((img, i) => {
+                const normalizedUrl = normalizeImageUrl(img)
+                return `
+                <div style="display: inline-block;">
+                  <a href="${normalizedUrl}" target="_blank" rel="noopener noreferrer" style="display: block;">
+                    <img src="${normalizedUrl}" style="width: 100%; max-height: 200px; object-fit: contain; background: #0f172a; border-radius: 8px;" />
+                  </a>
+                  <a href="${normalizedUrl}" target="_blank" rel="noopener noreferrer" style="display: block; text-align: center; font-size: 10px; color: #3b82f6; text-decoration: underline; margin-top: 4px; font-weight: 600;">🔗 Open Analysis Image ${i + 1}</a>
+                </div>
+              `}).join('')}
             </div>
           </div>`
         }
@@ -179,7 +199,16 @@ function generateReportDOM(data: ExportPDFData): HTMLElement {
           tradesHtml += `<div>
             <div style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">Result Images</div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              ${trade.resultImages.map(img => `<img src="${img}" style="width: 100%; max-height: 200px; object-fit: contain; background: #0f172a; border-radius: 8px;" />`).join('')}
+              ${trade.resultImages.map((img, i) => {
+                const normalizedUrl = normalizeImageUrl(img)
+                return `
+                <div style="display: inline-block;">
+                  <a href="${normalizedUrl}" target="_blank" rel="noopener noreferrer" style="display: block;">
+                    <img src="${normalizedUrl}" style="width: 100%; max-height: 200px; object-fit: contain; background: #0f172a; border-radius: 8px;" />
+                  </a>
+                  <a href="${normalizedUrl}" target="_blank" rel="noopener noreferrer" style="display: block; text-align: center; font-size: 10px; color: #3b82f6; text-decoration: underline; margin-top: 4px; font-weight: 600;">🔗 Open Result Image ${i + 1}</a>
+                </div>
+              `}).join('')}
             </div>
           </div>`
         }
@@ -210,7 +239,8 @@ export async function generatePDFReport(exportData: ExportPDFData, fileName: str
     image:        { type: 'jpeg' as const, quality: 0.98 },
     html2canvas:  { scale: 2, useCORS: true, letterRendering: true, windowWidth: 800 },
     jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' as const },
-    pagebreak:    { mode: ['css', 'legacy'] }
+    pagebreak:    { mode: ['css', 'legacy'] },
+    enableLinks:  true
   };
 
   try {
