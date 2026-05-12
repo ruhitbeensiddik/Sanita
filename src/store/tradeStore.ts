@@ -451,7 +451,7 @@ export const useTradeStore = create<TradeStore>((set, get) => ({
       // Reload state for current user
       const currentUser = useAuthStore.getState().currentUser
       if (currentUser) {
-        let query = supabase.from('trades').select('*').order('date', { ascending: false })
+        let query = supabase.from('trades').select('*').eq('is_deleted', false).order('date', { ascending: false })
         if (currentUser.role !== 'super_admin') {
           query = query.eq('user_id', currentUser.id)
         }

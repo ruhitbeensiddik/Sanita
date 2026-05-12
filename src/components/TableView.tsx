@@ -39,7 +39,8 @@ import {
   Eye,
   EyeOff,
   FileText,
-  Image as ImageIcon
+  Image as ImageIcon,
+  AlertTriangle
 } from 'lucide-react'
 import { ExportModal } from './ExportModal'
 import { TradingInsights } from './TradingInsights'
@@ -97,6 +98,10 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
   const [showPremiumPopup, setShowPremiumPopup] = useState(false)
   const [showCheckoutModal, setShowCheckoutModal] = useState(false)
   const [checkoutData, setCheckoutData] = useState<{ plan: string; originalPrice: number; totalDiscount: number; finalPrice: number; couponCode: string | null } | null>(null)
+
+  // Delete confirmation popup state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null) // single trade id
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false)
 
   const canCreateTrade = () => {
     if (!currentUser) return false
@@ -209,6 +214,7 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
     
     const ids = [...bulkSelect]
     setBulkSelect([])
+    setShowBulkDeleteConfirm(false)
     let successCount = 0
     for (const tradeId of ids) {
       const ok = await deleteTrade(tradeId)
@@ -218,6 +224,16 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
       toast.success(`${successCount} trade(s) moved to trash.`)
     } else {
       toast.error(`${successCount}/${ids.length} trades deleted. Some failed — check console.`)
+    }
+  }
+
+  const handleDeleteSingle = async (tradeId: string) => {
+    setShowDeleteConfirm(null)
+    const ok = await deleteTrade(tradeId)
+    if (ok) {
+      toast.success('Trade moved to trash')
+    } else {
+      toast.error('Failed to delete trade. Check console for details.')
     }
   }
 
@@ -433,7 +449,7 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
                 <Button 
                   variant="destructive" 
                   size="sm"
-                  onClick={deleteBulkTrades}
+                  onClick={() => setShowBulkDeleteConfirm(true)}
                   className="flex items-center gap-2"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -719,14 +735,9 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={async (e) => {
+                                onClick={(e) => {
                                   e.stopPropagation()
-                                  const ok = await deleteTrade(trade.id)
-                                  if (ok) {
-                                    toast.success('Trade moved to trash')
-                                  } else {
-                                    toast.error('Failed to delete trade. Check console for details.')
-                                  }
+                                  setShowDeleteConfirm(trade.id)
                                 }}
                                 className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                                 title="Delete trade"
@@ -836,6 +847,88 @@ export function TableView({ adminOverrideAccountId, adminOverrideUserId, hideCon
         editTrade={editingTrade}
         duplicateFrom={duplicatingTrade}
       />
+
+      {/* Delete Confirmation Popup */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowDeleteConfirm(null)} />
+            <motion.div
+              className="relative bg-card rounded-xl shadow-2xl border border-border p-6 max-w-md mx-4 z-10"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-red-500/10 rounded-lg">
+                  <AlertTriangle className="h-6 w-6 text-red-500" />
+                </div>
+                <h3 className="text-lg font-bold text-foreground">Delete Trade</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-6">
+                Are you sure you want to delete this trade? It will be moved to trash and can be restored by an admin.
+              </p>
+              <div className="flex items-center justify-end gap-3">
+                <Button variant="outline" onClick={() => setShowDeleteConfirm(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => handleDeleteSingle(showDeleteConfirm)}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" /> Yes, Delete
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Bulk Delete Confirmation Popup */}
+      <AnimatePresence>
+        {showBulkDeleteConfirm && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowBulkDeleteConfirm(false)} />
+            <motion.div
+              className="relative bg-card rounded-xl shadow-2xl border border-border p-6 max-w-md mx-4 z-10"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-red-500/10 rounded-lg">
+                  <AlertTriangle className="h-6 w-6 text-red-500" />
+                </div>
+                <h3 className="text-lg font-bold text-foreground">Delete {bulkSelect.length} Trade{bulkSelect.length !== 1 ? 's' : ''}</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-6">
+                Are you sure you want to delete {bulkSelect.length} selected trade{bulkSelect.length !== 1 ? 's' : ''}? They will be moved to trash and can be restored by an admin.
+              </p>
+              <div className="flex items-center justify-end gap-3">
+                <Button variant="outline" onClick={() => setShowBulkDeleteConfirm(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={deleteBulkTrades}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" /> Yes, Delete All
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Trade Detail Inspector */}
       <TradeDetailModal 
