@@ -8,6 +8,7 @@ const TableView = lazy(() => import('./components/TableView').then(m => ({ defau
 const CalendarView = lazy(() => import('./components/CalendarView').then(m => ({ default: m.CalendarView })))
 const DashboardView = lazy(() => import('./components/DashboardView').then(m => ({ default: m.DashboardView })))
 const GoalsView = lazy(() => import('./components/GoalsView'))
+const ProfileView = lazy(() => import('./components/ProfileView').then(m => ({ default: m.ProfileView })))
 import { Button } from './components/ui/button'
 import { Card, CardContent, CardHeader } from './components/ui/card'
 import { 
@@ -21,7 +22,8 @@ import {
   Target,
   ShieldAlert,
   Menu,
-  X
+  X,
+  User
 } from 'lucide-react'
 import logoImage from './forexdairy-logo.png'
 import { Sidebar } from './components/Sidebar'
@@ -33,8 +35,8 @@ const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard').th
 import { UserNoticeBox } from './components/UserNoticeBox'
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'table' | 'calendar' | 'goals' | 'admin'>(() => {
-    const saved = localStorage.getItem('activeTab') as 'dashboard' | 'table' | 'calendar' | 'goals' | 'admin' | null
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'table' | 'calendar' | 'goals' | 'admin' | 'profile'>(() => {
+    const saved = localStorage.getItem('activeTab') as 'dashboard' | 'table' | 'calendar' | 'goals' | 'admin' | 'profile' | null
     return saved || 'dashboard'
   })
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -166,21 +168,28 @@ function App() {
 
   if (currentUser?.role === 'super_admin') {
     tabs = [
-      { id: 'admin', label: 'Admin', icon: ShieldAlert, description: 'System Management' }
+      { id: 'admin', label: 'Admin', icon: ShieldAlert, description: 'System Management' },
+      { id: 'profile', label: 'Profile', icon: User, description: 'Manage Account' }
     ]
   } else {
     tabs = [
       { id: 'dashboard', label: 'Dashboard', icon: PieChart, description: 'Overview & Analytics' },
       { id: 'table', label: 'Trades', icon: BarChart3, description: 'Trade Management' },
       { id: 'calendar', label: 'Calendar', icon: Calendar, description: 'Daily View' },
-      { id: 'goals', label: 'Goals', icon: Target, description: 'Financial Goals' }
+      { id: 'goals', label: 'Goals', icon: Target, description: 'Financial Goals' },
+      { id: 'profile', label: 'Profile', icon: User, description: 'Manage Account' }
     ]
     if (currentUser?.role === 'admin') {
       tabs.push({ id: 'admin', label: 'Admin', icon: ShieldAlert, description: 'System Management' })
     }
   }
 
-  const effectiveActiveTab = currentUser?.role === 'super_admin' ? 'admin' : activeTab
+  let effectiveActiveTab = activeTab
+  if (currentUser?.role === 'super_admin') {
+    if (activeTab !== 'admin' && activeTab !== 'profile') {
+      effectiveActiveTab = 'admin'
+    }
+  }
 
   if (!currentUser) {
     return (
@@ -400,6 +409,7 @@ function App() {
                   {effectiveActiveTab === 'calendar' && <CalendarView />}
                   {effectiveActiveTab === 'goals' && <GoalsView />}
                   {effectiveActiveTab === 'admin' && <AdminDashboard />}
+                  {effectiveActiveTab === 'profile' && <ProfileView />}
                 </Suspense>
               </motion.div>
             </AnimatePresence>

@@ -30,6 +30,7 @@ interface AuthState {
   deleteUser: (userId: string) => Promise<void>
   approveUser: (userId: string) => Promise<void>
   rejectUser: (userId: string) => Promise<void>
+  updateProfile: (firstName: string, lastName: string, password?: string) => Promise<{ success: boolean; error?: string }>
 }
 
 // ─── Module-level coordination flags ────────────────────
@@ -410,6 +411,45 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     } catch (err) {
       console.error('rejectUser exception:', err)
+    }
+  },
+
+  updateProfile: async (firstName, lastName, password) => {
+    const currentUser = get().currentUser
+    if (!currentUser) return { success: false, error: 'Not authenticated' }
+
+    set({ isLoading: true, error: null })
+    try {
+      // 1. Update Profile (first name, last name)
+      const { error: profileError } = await supabase.from('profiles')
+        .update({ first_name: firstName, last_name: lastName })
+        .eq('id', currentUser.id)
+        
+      if (profileError) {
+        throw profileError
+      }
+
+      // 2. Update Password if provided
+      if (password) {
+        const { error: authError } = await supabase.auth.updateUser({ password })
+        if (authError) {
+          throw authError
+        }
+      }
+
+      // 3. Refresh currentUser locally
+      const updatedUser = await fetchProfile(currentUser.id)
+      if (updatedUser) {
+        set({ currentUser: updatedUser })
+        get().subscribeToAllUsers() // Refresh lists if they are loaded
+      }
+
+      return { success: true }
+    } catch (err: any) {
+      console.error('[Auth] updateProfile error:', err)
+      return { success: false, error: err.message || 'Failed to update profile' }
+    } finally {
+      set({ isLoading: false })
     }
   }
 }))

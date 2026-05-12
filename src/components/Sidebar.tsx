@@ -3,7 +3,7 @@ import { Button } from './ui/button'
 import { Card } from './ui/card'
 import { PieChart, BarChart3, Calendar, Target } from 'lucide-react'
 import logoImage from '../forexdairy-logo.png'
-type TabId = 'dashboard' | 'table' | 'calendar' | 'goals' | 'admin'
+type TabId = 'dashboard' | 'table' | 'calendar' | 'goals' | 'admin' | 'profile'
 
 interface SidebarProps {
   activeTab: TabId
@@ -16,9 +16,10 @@ const NAV_ITEMS: Array<{ id: TabId; label: string; icon: React.ComponentType<any
   { id: 'table', label: 'Trades', icon: BarChart3, description: 'Trade Management', color: 'text-foreground' },
   { id: 'calendar', label: 'Calendar', icon: Calendar, description: 'Daily View', color: 'text-foreground' },
   { id: 'goals', label: 'Goals', icon: Target, description: 'Financial Goals', color: 'text-foreground' },
+  { id: 'profile', label: 'Profile', icon: User, description: 'Manage Account', color: 'text-foreground' },
 ]
 
-import { ShieldAlert } from 'lucide-react'
+import { ShieldAlert, User } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
 
 export function Sidebar({ activeTab, onChange, className = "hidden lg:block w-64 shrink-0 pr-4" }: SidebarProps) {
@@ -27,8 +28,11 @@ export function Sidebar({ activeTab, onChange, className = "hidden lg:block w-64
   let navItems: Array<{ id: TabId; label: string; icon: React.ComponentType<any>; description: string; color: string }> = []
   
   if (currentUser?.role === 'super_admin') {
-    // Super Admin only sees management
-    navItems = [{ id: 'admin', label: 'Admin', icon: ShieldAlert, description: 'System Management', color: 'text-foreground' }]
+    // Super Admin sees management and profile
+    navItems = [
+      { id: 'admin', label: 'Admin', icon: ShieldAlert, description: 'System Management', color: 'text-foreground' },
+      { id: 'profile', label: 'Profile', icon: User, description: 'Manage Account', color: 'text-foreground' }
+    ]
   } else {
     navItems = [...NAV_ITEMS]
     if (currentUser?.role === 'admin') {
