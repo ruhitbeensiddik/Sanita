@@ -353,10 +353,13 @@ CREATE POLICY "Users can insert own trades"
   WITH CHECK (auth.uid() = user_id);
 
 -- Normal users can UPDATE own non-deleted trades (includes soft-delete action)
+-- USING checks existing row (must own it), WITH CHECK validates the new row (must still own it)
+-- WITH CHECK only requires user_id match so that setting is_deleted=true is allowed
 DROP POLICY IF EXISTS "Users can update own trades" ON public.trades;
 CREATE POLICY "Users can update own trades"
   ON public.trades FOR UPDATE
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id AND is_deleted = false)
+  WITH CHECK (auth.uid() = user_id);
 
 -- Normal users CANNOT hard delete trades (no DELETE policy for regular users)
 
