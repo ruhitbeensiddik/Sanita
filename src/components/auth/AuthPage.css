@@ -129,7 +129,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #10b981, #14b8a6, #10b981);
+  background: linear-gradient(90deg, #1f1f1f, #3a3a3a, #1f1f1f);
   opacity: 0.85;
 }
 
@@ -189,9 +189,9 @@
 }
 
 .auth-form-input:focus {
-  border-color: #10b981;
+  border-color: #1f1f1f;
   background: #ffffff;
-  box-shadow: 0 0 0 3.5px rgba(16, 185, 129, 0.1);
+  box-shadow: 0 0 0 3.5px rgba(31, 31, 31, 0.1);
 }
 
 .auth-form-input::placeholder {
@@ -249,14 +249,14 @@
   width: 16px;
   height: 16px;
   border-radius: 4px;
-  accent-color: #10b981;
+  accent-color: #1f1f1f;
   cursor: pointer;
   margin: 0;
 }
 
 .auth-forgot-link {
   font-size: 0.8rem;
-  color: #10b981;
+  color: #374151;
   text-decoration: none;
   font-weight: 500;
   background: none;
@@ -268,7 +268,7 @@
 }
 
 .auth-forgot-link:hover {
-  color: #059669;
+  color: #111827;
 }
 
 /* ---------- Submit button ---------- */
@@ -280,7 +280,7 @@
   font-size: 0.92rem;
   font-weight: 600;
   color: #ffffff;
-  background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+  background: linear-gradient(135deg, #1f1f1f 0%, #2d2d2d 100%);
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   letter-spacing: 0.01em;
@@ -304,12 +304,12 @@
 
 .auth-submit-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 28px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 8px 28px rgba(31, 31, 31, 0.25);
 }
 
 .auth-submit-btn:active {
   transform: translateY(0);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+  box-shadow: 0 4px 12px rgba(31, 31, 31, 0.2);
 }
 
 .auth-submit-btn:disabled {
@@ -383,7 +383,7 @@
 }
 
 .auth-switch-link {
-  color: #10b981;
+  color: #374151;
   font-weight: 600;
   background: none;
   border: none;
@@ -395,7 +395,7 @@
 }
 
 .auth-switch-link:hover {
-  color: #059669;
+  color: #111827;
   text-decoration: underline;
 }
 

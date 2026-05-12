@@ -56,7 +56,7 @@ export function AdminCoupons() {
             </CardTitle>
             <CardDescription>{coupons.length} coupon{coupons.length !== 1 ? 's' : ''}</CardDescription>
           </div>
-          <Button size="sm" onClick={() => setShowForm(!showForm)} className="bg-gradient-to-r from-emerald-600 to-teal-600">
+          <Button size="sm" onClick={() => setShowForm(!showForm)} className="bg-primary text-primary-foreground hover:bg-primary/90">
             <Plus className="h-4 w-4 mr-1" /> New Coupon
           </Button>
         </div>
@@ -88,7 +88,7 @@ export function AdminCoupons() {
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>Cancel</Button>
-              <Button size="sm" onClick={handleCreate} className="bg-emerald-600 hover:bg-emerald-700">Create</Button>
+              <Button size="sm" onClick={handleCreate} className="bg-primary text-primary-foreground hover:bg-primary/90">Create</Button>
             </div>
           </div>
         )}
@@ -108,9 +108,9 @@ export function AdminCoupons() {
               {coupons.map(c => (
                 <tr key={c.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3 font-mono font-bold text-foreground">{c.code}</td>
-                  <td className="px-4 py-3 font-medium text-emerald-600">{c.discountPercent}%</td>
+                  <td className="px-4 py-3 font-medium text-foreground">{c.discountPercent}%</td>
                   <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${c.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${c.isActive ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-500'}`}>
                       {c.isActive ? 'ACTIVE' : 'INACTIVE'}
                     </span>
                   </td>
@@ -121,7 +121,7 @@ export function AdminCoupons() {
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
                       <Button size="sm" variant="ghost" onClick={() => toggleActive(c.id, c.isActive)} className="h-7 w-7 p-0" title={c.isActive ? 'Deactivate' : 'Activate'}>
-                        {c.isActive ? <ToggleRight className="h-4 w-4 text-emerald-500" /> : <ToggleLeft className="h-4 w-4 text-muted-foreground" />}
+                        {c.isActive ? <ToggleRight className="h-4 w-4 text-green-600" /> : <ToggleLeft className="h-4 w-4 text-muted-foreground" />}
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => handleDelete(c.id)} className="h-7 w-7 p-0 text-destructive hover:text-destructive">
                         <Trash2 className="h-3.5 w-3.5" />

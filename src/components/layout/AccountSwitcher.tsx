@@ -76,11 +76,11 @@ export function AccountSwitcher() {
           variant="outline" 
           role="combobox" 
           aria-expanded={isOpen} 
-          className="h-10 shrink-0 w-[220px] justify-between bg-card hover:bg-muted/50 border-emerald-500/30 overflow-hidden"
+          className="h-10 shrink-0 w-[220px] justify-between bg-card hover:bg-muted/50 border-border overflow-hidden"
           onClick={() => setIsOpen(!isOpen)}
         >
           <div className="flex items-center gap-2 min-w-0 pr-2 overflow-hidden flex-1 text-left">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div>
+            <div className="w-2 h-2 rounded-full bg-foreground shrink-0"></div>
             <span className="truncate block font-medium">
               {activeAccount ? activeAccount.name : 'Select Account'}
             </span>
@@ -126,7 +126,7 @@ export function AccountSwitcher() {
                           }}
                           className={`flex-1 text-left px-3 py-2 rounded-md text-sm flex items-center gap-2 transition-colors ${
                             activeAccountId === account.id 
-                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium' 
+                              ? 'bg-primary/10 text-foreground font-medium' 
                               : 'hover:bg-muted'
                           }`}
                         >
@@ -138,7 +138,7 @@ export function AccountSwitcher() {
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="h-6 w-6 p-0 hover:bg-emerald-500/20 hover:text-emerald-600"
+                            className="h-6 w-6 p-0 hover:bg-muted hover:text-foreground"
                             onClick={(e) => { e.stopPropagation(); setEditAccountName(account.name); setEditingAccountId(account.id); }}
                             title="Rename"
                           >
@@ -182,7 +182,7 @@ export function AccountSwitcher() {
                 ) : (
                   <Button 
                     variant="ghost" 
-                    className="w-full justify-start text-xs text-muted-foreground hover:text-emerald-600 hover:bg-emerald-500/10"
+                    className="w-full justify-start text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
                     onClick={() => {
                       if (userAccounts.length >= 10) {
                          setShowLimitModal(true)

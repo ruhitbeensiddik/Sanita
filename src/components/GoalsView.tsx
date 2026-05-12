@@ -290,7 +290,7 @@ export function GoalsView({ adminOverrideAccountId, adminOverrideUserId, hideCon
         <Card className="bg-card border-border shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4 flex flex-col justify-center items-center text-center h-full">
             <div className="text-sm font-medium text-muted-foreground mb-1">Overall Progress</div>
-            <div className="text-2xl font-bold text-teal-600">
+            <div className="text-2xl font-bold text-foreground">
               {goalSummary.totalProgressPercentage.toFixed(1)}%
             </div>
           </CardContent>

@@ -318,7 +318,7 @@ export function TradeFormModal({ isOpen, onClose, editTrade, prefillDate, duplic
               {/* Header */}
               <div className="trade-form-header">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg">
+                  <div className="p-2 bg-primary rounded-xl shadow-lg">
                     <BarChart3 className="h-5 w-5 text-white" />
                   </div>
                   <div>
@@ -370,7 +370,7 @@ export function TradeFormModal({ isOpen, onClose, editTrade, prefillDate, duplic
                       className="space-y-5"
                     >
                       <div className="trade-form-section-header">
-                        <CalendarDays className="h-5 w-5 text-emerald-500" />
+                        <CalendarDays className="h-5 w-5 text-foreground" />
                         <span>Basic Trade Information</span>
                       </div>
 
@@ -474,7 +474,7 @@ export function TradeFormModal({ isOpen, onClose, editTrade, prefillDate, duplic
                       className="space-y-5"
                     >
                       <div className="trade-form-section-header">
-                        <DollarSign className="h-5 w-5 text-emerald-500" />
+                        <DollarSign className="h-5 w-5 text-foreground" />
                         <span>Trade Result</span>
                       </div>
 
@@ -576,7 +576,7 @@ export function TradeFormModal({ isOpen, onClose, editTrade, prefillDate, duplic
                 <div className="trade-form-footer">
                   <div className="flex items-center gap-1">
                     {sections.map((_, idx) => (
-                      <div key={idx} className={`h-1.5 rounded-full transition-all duration-200 ${idx === activeSection ? 'w-6 bg-emerald-500' : 'w-1.5 bg-muted-foreground/30'}`} />
+                      <div key={idx} className={`h-1.5 rounded-full transition-all duration-200 ${idx === activeSection ? 'w-6 bg-primary' : 'w-1.5 bg-muted-foreground/30'}`} />
                     ))}
                   </div>
 

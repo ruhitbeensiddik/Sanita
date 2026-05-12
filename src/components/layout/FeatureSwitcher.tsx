@@ -47,11 +47,11 @@ export function FeatureSwitcher() {
           variant="outline" 
           role="combobox" 
           aria-expanded={isOpen} 
-          className="h-10 shrink-0 w-[180px] sm:w-[200px] justify-between bg-card hover:bg-muted/50 border-emerald-500/30 overflow-hidden"
+          className="h-10 shrink-0 w-[180px] sm:w-[200px] justify-between bg-card hover:bg-muted/50 border-border overflow-hidden"
           onClick={() => setIsOpen(!isOpen)}
         >
           <div className="flex items-center gap-2 min-w-0 pr-2 overflow-hidden flex-1 text-left">
-            <Beaker className="h-4 w-4 text-emerald-500 shrink-0" />
+            <Beaker className="h-4 w-4 text-foreground shrink-0" />
             <span className="truncate block font-medium">
               Journal
             </span>
@@ -80,7 +80,7 @@ export function FeatureSwitcher() {
                       onClick={() => handleSelect(opt)}
                       className={`w-full text-left px-3 py-2.5 rounded-md text-sm flex items-center justify-between transition-colors ${
                         opt.active 
-                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium' 
+                          ? 'bg-primary/10 text-foreground font-medium' 
                           : 'hover:bg-muted'
                       }`}
                     >

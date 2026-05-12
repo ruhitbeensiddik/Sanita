@@ -249,7 +249,7 @@ function App() {
                         <div className="text-muted-foreground">P&L</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-xl font-bold text-emerald-600">
+                        <div className="text-xl font-bold text-foreground">
                           {summary.winRate.toFixed(0)}%
                         </div>
                         <div className="text-muted-foreground">Profit Rate</div>
@@ -318,7 +318,7 @@ function App() {
                         onClick={() => setActiveTab(tab.id as any)}
                         className={`relative overflow-hidden transition-all duration-300 ${
                           isActive 
-                            ? 'bg-gradient-to-r from-emerald-600 to-teal-600 shadow-lg scale-105 text-white' 
+                            ? 'bg-primary text-primary-foreground shadow-lg scale-105' 
                             : 'hover:bg-muted/80 hover:shadow-md'
                         }`}
                       >

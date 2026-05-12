@@ -38,7 +38,7 @@ export function AdminSubscriptionSettings() {
     <Card>
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
-          <DollarSign className="h-5 w-5 text-emerald-500" /> Subscription & Pricing
+          <DollarSign className="h-5 w-5 text-foreground" /> Subscription & Pricing
         </CardTitle>
         <CardDescription>Configure global pricing and discount for all users.</CardDescription>
       </CardHeader>
@@ -58,14 +58,14 @@ export function AdminSubscriptionSettings() {
           </div>
         </div>
         <div className="mt-6 flex justify-end">
-          <Button onClick={handleSave} disabled={saving} className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700">
+          <Button onClick={handleSave} disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90">
             <Save className="h-4 w-4 mr-2" />{saving ? 'Saving...' : 'Save Settings'}
           </Button>
         </div>
         {settings && (
           <div className="mt-6 grid grid-cols-3 gap-4 text-center">
-            <div className="p-3 bg-muted/30 rounded-lg border"><div className="text-2xl font-bold text-emerald-600">${settings.monthlyPrice}</div><div className="text-xs text-muted-foreground">Monthly</div></div>
-            <div className="p-3 bg-muted/30 rounded-lg border"><div className="text-2xl font-bold text-emerald-600">${settings.yearlyPrice}</div><div className="text-xs text-muted-foreground">Yearly</div></div>
+            <div className="p-3 bg-muted/30 rounded-lg border"><div className="text-2xl font-bold text-foreground">${settings.monthlyPrice}</div><div className="text-xs text-muted-foreground">Monthly</div></div>
+            <div className="p-3 bg-muted/30 rounded-lg border"><div className="text-2xl font-bold text-foreground">${settings.yearlyPrice}</div><div className="text-xs text-muted-foreground">Yearly</div></div>
             <div className="p-3 bg-muted/30 rounded-lg border"><div className="text-2xl font-bold text-orange-500">{settings.globalDiscountPercent}%</div><div className="text-xs text-muted-foreground">Global Discount</div></div>
           </div>
         )}

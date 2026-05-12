@@ -96,11 +96,11 @@ export function PremiumPopup({ isOpen, onClose, onCheckout }: PremiumPopupProps)
                 <div className="grid grid-cols-2 gap-3">
                   {[{ plan: 'monthly' as const, price: monthlyPrice, label: 'Monthly', period: '/mo' }, { plan: 'yearly' as const, price: yearlyPrice, label: 'Yearly', period: '/yr', badge: 'Best Value' }].map(({ plan, price, label, period, badge }) => (
                     <button key={plan} onClick={() => handlePlanChange(plan)}
-                      className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${selectedPlan === plan ? 'border-emerald-500 bg-emerald-500/5 shadow-md' : 'border-border hover:border-muted-foreground/40'}`}>
+                      className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${selectedPlan === plan ? 'border-primary bg-primary/5 shadow-md' : 'border-border hover:border-muted-foreground/40'}`}>
                       {badge && <span className="absolute -top-2.5 left-3 px-2 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold rounded-full">{badge}</span>}
                       <div className="text-xs text-muted-foreground mb-1">{label}</div>
                       <div className="text-2xl font-bold text-foreground">${price}<span className="text-sm font-normal text-muted-foreground">{period}</span></div>
-                      {selectedPlan === plan && <Sparkles className="absolute top-3 right-3 h-4 w-4 text-emerald-500" />}
+                      {selectedPlan === plan && <Sparkles className="absolute top-3 right-3 h-4 w-4 text-foreground" />}
                     </button>
                   ))}
                 </div>
@@ -116,21 +116,21 @@ export function PremiumPopup({ isOpen, onClose, onCheckout }: PremiumPopupProps)
                     </Button>
                   </div>
                   <p className="text-[11px] text-muted-foreground">Coupons are only valid for yearly subscription plans.</p>
-                  {couponApplied && <p className="text-xs text-emerald-600 font-medium">Coupon discount: {couponDiscount}% off</p>}
+                  {couponApplied && <p className="text-xs text-foreground font-medium">Coupon discount: {couponDiscount}% off</p>}
                 </div>
 
                 {/* Price Breakdown */}
                 <div className="bg-muted/30 rounded-xl p-4 space-y-2">
                   <div className="flex justify-between text-sm"><span className="text-muted-foreground">Base Price ({selectedPlan})</span><span className="font-medium">${basePrice.toFixed(2)}</span></div>
-                  {globalDiscount > 0 && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Global Discount</span><span className="text-emerald-600 font-medium">-{globalDiscount}%</span></div>}
-                  {couponDiscount > 0 && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Coupon Discount</span><span className="text-emerald-600 font-medium">-{couponDiscount}%</span></div>}
-                  {userDiscount > 0 && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Your Special Discount</span><span className="text-emerald-600 font-medium">-{userDiscount}%</span></div>}
-                  {totalDiscount > 0 && <div className="flex justify-between text-sm border-t border-border pt-2"><span className="text-muted-foreground">Total Discount</span><span className="text-emerald-600 font-bold">-{totalDiscount}%</span></div>}
-                  <div className="flex justify-between text-lg font-bold border-t border-border pt-2"><span>Final Price</span><span className="text-emerald-600">${finalPrice.toFixed(2)}</span></div>
+                  {globalDiscount > 0 && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Global Discount</span><span className="text-foreground font-medium">-{globalDiscount}%</span></div>}
+                  {couponDiscount > 0 && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Coupon Discount</span><span className="text-foreground font-medium">-{couponDiscount}%</span></div>}
+                  {userDiscount > 0 && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Your Special Discount</span><span className="text-foreground font-medium">-{userDiscount}%</span></div>}
+                  {totalDiscount > 0 && <div className="flex justify-between text-sm border-t border-border pt-2"><span className="text-muted-foreground">Total Discount</span><span className="text-foreground font-bold">-{totalDiscount}%</span></div>}
+                  <div className="flex justify-between text-lg font-bold border-t border-border pt-2"><span>Final Price</span><span className="text-foreground">${finalPrice.toFixed(2)}</span></div>
                 </div>
 
                 {/* Continue Button */}
-                <Button onClick={handleContinue} className="w-full h-12 text-base bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg">
+                <Button onClick={handleContinue} className="w-full h-12 text-base bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg">
                   Continue to Checkout <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>

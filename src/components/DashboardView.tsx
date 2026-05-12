@@ -178,7 +178,7 @@ export function DashboardView() {
       value: formatCurrency(summary.netPnL),
       change: "Overall Result",
       icon: TrendingUp,
-      color: summary.netPnL >= 0 ? "text-emerald-600" : "text-rose-600",
+      color: summary.netPnL >= 0 ? "text-green-600" : "text-rose-600",
       variant: summary.netPnL >= 0 ? "success" : "destructive" as const
     },
     {
@@ -452,7 +452,7 @@ export function DashboardView() {
                       />
                       <Tooltip 
                         content={<ChartTooltip formatterType="currency" customLabel="Day" />} 
-                        cursor={{ fill: 'var(--tw-colors-emerald-500)', opacity: 0.1 }}
+                        cursor={{ fill: '#9ca3af', opacity: 0.1 }}
                       />
                       <Bar 
                         name="Daily Result"

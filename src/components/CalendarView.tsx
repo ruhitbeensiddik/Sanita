@@ -160,13 +160,13 @@ export function CalendarView() {
               <div className="text-2xl font-bold text-red-600">{currentMonthTrades.filter(t => t.result === 'Loss').length}</div>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/20">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/20 dark:to-slate-800/20">
             <CardContent className="p-4 text-center">
               <div className="flex items-center justify-center gap-2 mb-2">
-                <Activity className="h-5 w-5 text-teal-600" />
-                <span className="text-sm font-medium text-teal-700 dark:text-teal-300">Total</span>
+                <Activity className="h-5 w-5 text-slate-600" />
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Total</span>
               </div>
-              <div className="text-2xl font-bold text-teal-600">{currentMonthTrades.length}</div>
+              <div className="text-2xl font-bold text-foreground">{currentMonthTrades.length}</div>
             </CardContent>
           </Card>
         </div>
@@ -199,7 +199,7 @@ export function CalendarView() {
                 return (
                   <motion.div key={index}
                     className={`h-24 border rounded-lg p-1 cursor-pointer transition-all duration-200
-                      ${isSelected ? 'ring-2 ring-emerald-500 scale-105' : ''}
+                      ${isSelected ? 'ring-2 ring-primary scale-105' : ''}
                       ${isHovered ? 'shadow-lg' : 'hover:shadow-md'}
                       ${dayTrades.length > 0 ? 'bg-gradient-to-br ' + getResultGradient(dailySummary.result) : 'bg-card hover:bg-muted/50'}`}
                     onClick={() => setSelectedDate(dateString)}
@@ -326,7 +326,7 @@ export function CalendarView() {
                                   <div className="flex gap-1.5 flex-wrap">
                                     {analysisImgs.map((img, imgIdx) => (
                                       <button key={imgIdx} onClick={() => openLightbox(analysisImgs, imgIdx, 'Analysis Images')}
-                                        className="h-14 w-20 rounded border border-border overflow-hidden hover:ring-2 hover:ring-emerald-500 transition-all">
+                                        className="h-14 w-20 rounded border border-border overflow-hidden hover:ring-2 hover:ring-primary transition-all">
                                         <img src={img} alt={`Analysis ${imgIdx + 1}`} className="w-full h-full object-cover" />
                                       </button>
                                     ))}
@@ -341,7 +341,7 @@ export function CalendarView() {
                                   <div className="flex gap-1.5 flex-wrap">
                                     {resultImgs.map((img, imgIdx) => (
                                       <button key={imgIdx} onClick={() => openLightbox(resultImgs, imgIdx, 'Result Images')}
-                                        className="h-14 w-20 rounded border border-border overflow-hidden hover:ring-2 hover:ring-emerald-500 transition-all">
+                                        className="h-14 w-20 rounded border border-border overflow-hidden hover:ring-2 hover:ring-primary transition-all">
                                         <img src={img} alt={`Result ${imgIdx + 1}`} className="w-full h-full object-cover" />
                                       </button>
                                     ))}
@@ -374,7 +374,7 @@ export function CalendarView() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="border-0 shadow-md h-full">
             <CardContent className="p-4 h-full flex flex-col items-center justify-center text-center min-h-[100px]">
-              <div className="p-2 bg-teal-100 dark:bg-teal-900/30 rounded-lg mb-2"><Activity className="h-5 w-5 text-teal-600" /></div>
+              <div className="p-2 bg-slate-100 dark:bg-slate-900/30 rounded-lg mb-2"><Activity className="h-5 w-5 text-slate-600" /></div>
               <p className="text-sm text-muted-foreground">Trading Days</p>
               <p className="text-xl font-bold">{tradingDays}</p>
               <p className="text-xs text-muted-foreground">{((tradingDays / daysInMonth) * 100).toFixed(0)}% of month</p>
@@ -423,8 +423,8 @@ export function CalendarView() {
                 <div className="text-sm text-muted-foreground">Losing Days</div>
                 <div className="text-xs text-muted-foreground mt-1">{tradingDays > 0 ? ((losingDays / tradingDays) * 100).toFixed(0) : 0}% of trading days</div>
               </div>
-              <div className="text-center p-4 bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/20 rounded-lg">
-                <div className="text-2xl font-bold text-teal-600">{tradingDays}</div>
+              <div className="text-center p-4 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/20 dark:to-slate-800/20 rounded-lg">
+                <div className="text-2xl font-bold text-foreground">{tradingDays}</div>
                 <div className="text-sm text-muted-foreground">Active Days</div>
                 <div className="text-xs text-muted-foreground mt-1">{((tradingDays / daysInMonth) * 100).toFixed(0)}% of month</div>
               </div>

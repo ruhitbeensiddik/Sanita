@@ -100,7 +100,7 @@ export function CheckoutModal({ isOpen, onClose, plan, originalPrice, totalDisco
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-5 border-b border-border/50 bg-gradient-to-r from-card to-muted/30">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg"><ShieldCheck className="h-5 w-5 text-white" /></div>
+                  <div className="p-2 bg-primary rounded-xl shadow-lg"><ShieldCheck className="h-5 w-5 text-white" /></div>
                   <div>
                     <h2 className="text-xl font-bold text-foreground">Checkout</h2>
                     <p className="text-sm text-muted-foreground">Review and submit your payment request</p>
@@ -115,14 +115,14 @@ export function CheckoutModal({ isOpen, onClose, plan, originalPrice, totalDisco
                   <h3 className="text-sm font-semibold mb-3">Order Summary</h3>
                   <div className="flex justify-between text-sm"><span className="text-muted-foreground">Plan</span><span className="font-medium capitalize">{plan}</span></div>
                   <div className="flex justify-between text-sm"><span className="text-muted-foreground">Original Price</span><span className="font-medium">${originalPrice.toFixed(2)}</span></div>
-                  {totalDiscount > 0 && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Discount</span><span className="text-emerald-600 font-medium">-{totalDiscount}%</span></div>}
+                  {totalDiscount > 0 && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Discount</span><span className="text-foreground font-medium">-{totalDiscount}%</span></div>}
                   {couponCode && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Coupon</span><span className="font-mono text-xs">{couponCode}</span></div>}
-                  <div className="flex justify-between text-lg font-bold border-t border-border pt-2 mt-2"><span>Amount Due</span><span className="text-emerald-600">${finalPrice.toFixed(2)}</span></div>
+                  <div className="flex justify-between text-lg font-bold border-t border-border pt-2 mt-2"><span>Amount Due</span><span className="text-foreground">${finalPrice.toFixed(2)}</span></div>
                 </div>
 
                 {/* Payment Instructions */}
                 <div className="bg-card border border-border rounded-xl p-5 shadow-sm space-y-4">
-                  <h3 className="text-base font-bold flex items-center gap-2"><FileText className="h-5 w-5 text-emerald-500" /> Payment Instructions</h3>
+                  <h3 className="text-base font-bold flex items-center gap-2"><FileText className="h-5 w-5 text-foreground" /> Payment Instructions</h3>
                   
                   <div className="flex flex-col items-center p-4 bg-muted/20 rounded-xl border border-border/50">
                     <div className="p-2 border-2 border-border/50 rounded-xl bg-white shadow-sm mb-5 w-full max-w-[200px]">
@@ -153,7 +153,7 @@ export function CheckoutModal({ isOpen, onClose, plan, originalPrice, totalDisco
                               navigator.clipboard.writeText('0x535998dd21e75be323915290ec37ae72c23da745');
                               toast.success('Address copied to clipboard!');
                             }}
-                            className="text-emerald-600 dark:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold"
+                            className="text-foreground hover:bg-muted transition-colors flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold"
                           >
                             <Copy className="h-3.5 w-3.5" /> Copy
                           </button>
@@ -189,30 +189,30 @@ export function CheckoutModal({ isOpen, onClose, plan, originalPrice, totalDisco
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-xs font-medium text-foreground">Payment Amount (USDT) *</label>
-                        <input type="number" step="any" value={amountInput} onChange={e => setAmountInput(e.target.value)} placeholder="e.g. 10" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                        <input type="number" step="any" value={amountInput} onChange={e => setAmountInput(e.target.value)} placeholder="e.g. 10" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/40" />
                       </div>
                     </div>
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-medium text-foreground">Transaction Hash / TxID *</label>
-                      <input type="text" value={txid} onChange={e => setTxid(e.target.value)} placeholder="e.g. 0x123abc..." className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                      <input type="text" value={txid} onChange={e => setTxid(e.target.value)} placeholder="e.g. 0x123abc..." className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring/40" />
                       <p className="text-[10px] text-muted-foreground">Paste your Binance/BSC transaction hash here.</p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-xs font-medium text-foreground">Sender Name or Binance Email</label>
-                        <input type="text" value={senderInfo} onChange={e => setSenderInfo(e.target.value)} placeholder="Optional" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                        <input type="text" value={senderInfo} onChange={e => setSenderInfo(e.target.value)} placeholder="Optional" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/40" />
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-xs font-medium text-foreground">Payment Date *</label>
-                        <input type="datetime-local" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                        <input type="datetime-local" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/40" />
                       </div>
                     </div>
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-medium text-foreground">Keyword Code</label>
-                      <input type="text" value={keywordCode} onChange={e => setKeywordCode(e.target.value)} placeholder="Optional" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                      <input type="text" value={keywordCode} onChange={e => setKeywordCode(e.target.value)} placeholder="Optional" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/40" />
                       <p className="text-[10px] text-muted-foreground">Enter the keyword code shown in the payment instructions if applicable.</p>
                     </div>
                   </div>
@@ -229,7 +229,7 @@ export function CheckoutModal({ isOpen, onClose, plan, originalPrice, totalDisco
                       </p>
                     ))}
                   </div>
-                  <label className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${termsAccepted ? 'border-emerald-500 bg-emerald-500/5' : termsError ? 'border-red-500 bg-red-500/5' : 'border-border hover:border-muted-foreground/40'}`}>
+                  <label className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${termsAccepted ? 'border-primary bg-primary/5' : termsError ? 'border-red-500 bg-red-500/5' : 'border-border hover:border-muted-foreground/40'}`}>
                     <input type="checkbox" checked={termsAccepted} onChange={e => { setTermsAccepted(e.target.checked); if (e.target.checked) setTermsError(false) }}
                       className="mt-0.5 rounded" />
                     <span className="text-sm">I have read and agree to the Terms and Conditions</span>
@@ -238,7 +238,7 @@ export function CheckoutModal({ isOpen, onClose, plan, originalPrice, totalDisco
                 </div>
 
                 {/* Submit */}
-                <Button onClick={handleSubmit} disabled={submitting} className="w-full h-12 text-base bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg">
+                <Button onClick={handleSubmit} disabled={submitting} className="w-full h-12 text-base bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg">
                   <Send className="h-4 w-4 mr-2" /> {submitting ? 'Submitting...' : 'Submit Payment Request'}
                 </Button>
               </div>

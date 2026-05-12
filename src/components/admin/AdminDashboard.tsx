@@ -115,11 +115,11 @@ export function AdminDashboard() {
     <div className="space-y-6 pb-20">
       <div className="flex justify-between items-center bg-card p-6 rounded-xl border border-border shadow-sm">
         <div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-bold text-foreground">
             {isSuperAdmin ? 'Super Admin Panel' : 'Admin Panel'}
           </h2>
           <p className="text-muted-foreground mt-1 text-sm">
-            Status: <span className={`uppercase font-semibold tracking-wider ${isSuperAdmin ? 'text-indigo-500' : 'text-emerald-600'}`}>
+            Status: <span className={`uppercase font-semibold tracking-wider ${isSuperAdmin ? 'text-indigo-500' : 'text-foreground'}`}>
               {currentUser.role.replace('_', ' ')}
             </span>
           </p>
@@ -134,7 +134,7 @@ export function AdminDashboard() {
             const isActive = activeAdminTab === tab.id
             return (
               <Button key={tab.id} variant={isActive ? 'default' : 'outline'} size="sm" onClick={() => setActiveAdminTab(tab.id)}
-                className={`text-xs ${isActive ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md' : ''}`}>
+                className={`text-xs ${isActive ? 'bg-primary text-primary-foreground shadow-md' : ''}`}>
                 <Icon className="h-3.5 w-3.5 mr-1.5" /> {tab.label}
               </Button>
             )
@@ -160,7 +160,7 @@ export function AdminDashboard() {
                 <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Pending Approvals</CardTitle></CardHeader>
                 <CardContent className="h-full flex flex-col items-center justify-center min-h-[80px]">
                   <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-lg ${pendingUsers.length > 0 ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}`}><Clock className="h-6 w-6" /></div>
+                     <div className={`p-3 rounded-lg ${pendingUsers.length > 0 ? 'bg-amber-500/10 text-amber-500' : 'bg-primary/10 text-foreground'}`}><Clock className="h-6 w-6" /></div>
                     <div className={`text-3xl font-bold ${pendingUsers.length > 0 ? 'text-amber-500' : ''}`}>{pendingUsers.length}</div>
                   </div>
                 </CardContent>
@@ -170,7 +170,7 @@ export function AdminDashboard() {
               <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Accounts</CardTitle></CardHeader>
               <CardContent className="h-full flex flex-col items-center justify-center min-h-[80px]">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-purple-500/10 text-purple-500 rounded-lg"><Monitor className="h-6 w-6" /></div>
+                  <div className="p-3 bg-primary/10 text-foreground rounded-lg"><Monitor className="h-6 w-6" /></div>
                   <div className="text-3xl font-bold">{accounts.length}</div>
                 </div>
               </CardContent>
@@ -179,7 +179,7 @@ export function AdminDashboard() {
               <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Trades Logged</CardTitle></CardHeader>
               <CardContent className="h-full flex flex-col items-center justify-center min-h-[80px]">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-lg"><BarChart3 className="h-6 w-6" /></div>
+                   <div className="p-3 bg-primary/10 text-foreground rounded-lg"><BarChart3 className="h-6 w-6" /></div>
                   <div className="text-3xl font-bold">{trades.length}</div>
                 </div>
               </CardContent>
@@ -260,18 +260,18 @@ export function AdminDashboard() {
                             </div>
                           </td>
                           <td className="px-4 py-4">
-                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${user.role === 'super_admin' ? 'bg-indigo-500/10 text-indigo-500' : user.role === 'admin' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-500/10 text-slate-500'}`}>
+                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${user.role === 'super_admin' ? 'bg-indigo-500/10 text-indigo-500' : user.role === 'admin' ? 'bg-primary/10 text-foreground' : 'bg-slate-500/10 text-slate-500'}`}>
                               {user.role.replace('_', ' ').toUpperCase()}
                             </span>
                           </td>
                           <td className="px-4 py-4">
-                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getUserStatus(user) === 'approved' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getUserStatus(user) === 'approved' ? 'bg-green-500/10 text-green-600' : 'bg-amber-500/10 text-amber-500'}`}>
                               {getUserStatus(user).toUpperCase()}
                             </span>
                           </td>
                           <td className="px-4 py-4">
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              user.subscriptionStatus === 'active' ? 'bg-emerald-500/10 text-emerald-500' :
+                              user.subscriptionStatus === 'active' ? 'bg-green-500/10 text-green-600' :
                               user.subscriptionStatus === 'expired' ? 'bg-red-500/10 text-red-500' :
                               'bg-slate-500/10 text-slate-500'
                             }`}>{(user.subscriptionStatus || 'free').toUpperCase()}</span>
@@ -285,7 +285,7 @@ export function AdminDashboard() {
                                   {isSuperAdmin && !isTargetSuperAdmin && (
                                     <Button size="sm" variant="outline" onClick={() => setInspectUserId(user.id)} className="h-8 text-xs"><Eye className="h-3 w-3 mr-1" /> Inspect</Button>
                                   )}
-                                  {isTargetUser && <Button size="sm" variant="outline" onClick={() => handlePromote(user.id)} className="h-8 text-xs border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10">Promote</Button>}
+                                  {isTargetUser && <Button size="sm" variant="outline" onClick={() => handlePromote(user.id)} className="h-8 text-xs border-border text-foreground hover:bg-muted">Promote</Button>}
                                   {isSuperAdmin && isTargetAdmin && <Button size="sm" variant="outline" onClick={() => handleDemote(user.id)} className="h-8 text-xs">Demote</Button>}
                                   {!isProtected && (
                                     <>
